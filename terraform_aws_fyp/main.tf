@@ -31,17 +31,6 @@ data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
-resource "aws_iam_role_policy_attachment" "lab_role_policies" {
-  for_each = toset([
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
-    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  ])
-
-  role       = data.aws_iam_role.lab_role.name
-  policy_arn = each.value
-}
 
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "eks-demo-cluster"
