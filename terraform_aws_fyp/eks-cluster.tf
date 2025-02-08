@@ -7,7 +7,7 @@
 
 # 硬編碼 IAM 角色的 ARN 和名稱
 locals {
-  lab_role_arn = "arn:aws:iam::123456789012:role/LabRole"
+  lab_role_arn  = "arn:aws:iam::123456789012:role/LabRole"
   lab_role_name = "LabRole"
 }
 

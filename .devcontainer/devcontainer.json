@@ -8,7 +8,8 @@
     "vscode": {
       "extensions": [
         "hashicorp.terraform",
-        "github.copilot"
+        "github.copilot",
+        "mark-tucker.aws-cli-configure"
       ]
     }
   },
@@ -24,13 +25,15 @@
     "echo \"[default]\" > ~/.aws/config",
     "echo \"region = us-east-1\" >> ~/.aws/config",
     "echo \"output = json\" >> ~/.aws/config",
+    "echo \"\" >> ~/.aws/config",
+    "echo \"[profile my-profile]\" >> ~/.aws/config",
+    "echo \"role_arn = YOUR_LABROLE_ARN\" >> ~/.aws/config",
+    "echo \"source_profile = default\" >> ~/.aws/config",
     "code ~/.aws/config",
-    "code ~/.aws/credentials",
-    "echo 'Please enter your AWS credentials into ~/.aws/credentials'"
-  ],
+    "code ~/.aws/credentials"
+    ],
   "postAttachCommand": [
     "code ~/.aws/config",
-    "code ~/.aws/credentials",
-    "echo 'Please enter your AWS credentials into ~/.aws/credentials'"
+    "code ~/.aws/credentials"
   ]
 }
