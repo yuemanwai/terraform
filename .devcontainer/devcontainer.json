@@ -4,6 +4,14 @@
   "features": {
     "terraform": "latest"
   },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "hashicorp.terraform",
+        "github.copilot"
+      ]
+    }
+  },
   "postCreateCommand": [
     "terraform --version",
     "curl \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\"",
@@ -13,7 +21,16 @@
     "aws --version",
     "mkdir -p ~/.aws",
     "touch ~/.aws/config ~/.aws/credentials",
+    "echo \"[default]\" > ~/.aws/config",
+    "echo \"region = us-east-1\" >> ~/.aws/config",
+    "echo \"output = json\" >> ~/.aws/config",
     "code ~/.aws/config",
-    "code ~/.aws/credentials"
+    "code ~/.aws/credentials",
+    "echo 'Please enter your AWS credentials into ~/.aws/credentials'"
+  ],
+  "postAttachCommand": [
+    "code ~/.aws/config",
+    "code ~/.aws/credentials",
+    "echo 'Please enter your AWS credentials into ~/.aws/credentials'"
   ]
 }
