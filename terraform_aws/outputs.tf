@@ -4,8 +4,6 @@
 
 locals {
   config_map_aws_auth = <<CONFIGMAPAWSAUTH
-
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -21,8 +19,6 @@ data:
 CONFIGMAPAWSAUTH
 
   kubeconfig = <<KUBECONFIG
-
-
 apiVersion: v1
 clusters:
 - cluster:
@@ -56,4 +52,8 @@ output "config_map_aws_auth" {
 
 output "kubeconfig" {
   value = local.kubeconfig
+}
+
+output "aws_profile" {
+  value = var.aws_profile
 }
