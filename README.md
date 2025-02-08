@@ -14,7 +14,31 @@
 
 ### 配置 AWS
 
-請參考 [terraform_aws_fyp/README.md](./terraform_aws_fyp/README.md) 以獲取詳細步驟。
+請參考 [官方文檔](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) 以獲取詳細步驟。
+
+#### 配置 AWS CLI
+
+在使用 Terraform 配置 AWS 之前，您需要在 `~/.aws/config` 和 `~/.aws/credentials` 文件中添加必要的內容。
+
+##### ~/.aws/config
+
+```plaintext
+[default]
+region = us-east-1
+output = json
+
+[profile my-profile]
+role_arn = YOUR_LABROLE_ARN
+source_profile = default
+```
+
+##### ~/.aws/credentials
+
+```plaintext
+[default]
+aws_access_key_id = YOUR_ACCESS_KEY_ID
+aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
+```
 
 ### 配置 Azure
 
