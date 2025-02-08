@@ -3,10 +3,11 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region  = var.aws_region
+  profile = "my-profile"
 }
 
-data "aws_availability_zones" "available" {}
+// ...existing code...
 
 # Not required: currently used in conjunction with using
 # icanhazip.com to determine local workstation external IP

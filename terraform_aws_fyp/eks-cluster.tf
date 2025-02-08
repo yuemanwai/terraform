@@ -5,6 +5,12 @@
 #  * EKS Cluster
 #
 
+# 硬編碼 IAM 角色的 ARN 和名稱
+locals {
+  lab_role_arn = "arn:aws:iam::123456789012:role/LabRole"
+  lab_role_name = "LabRole"
+}
+
 # Use existing IAM role
 data "aws_iam_role" "lab_role" {
   name = "LabRole"
@@ -29,7 +35,7 @@ resource "aws_security_group" "demo-cluster" {
 }
 
 resource "aws_security_group_rule" "demo-cluster-ingress-workstation-https" {
-  cidr_blocks       = "[local.workstation-external-cidr]"
+  cidr_blocks       = [local.workstation-external-cidr]
   description       = "Allow workstation to communicate with the cluster API Server"
   from_port         = 443
   protocol          = "tcp"
@@ -41,10 +47,10 @@ resource "aws_security_group_rule" "demo-cluster-ingress-workstation-https" {
 # EKS Cluster
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "eks-demo-cluster"
-  role_arn = data.aws_iam_role.lab_role.arn
+  role_arn = local.lab_role_arn
 
   vpc_config {
     security_group_ids = [aws_security_group.demo-cluster.id]
-    subnet_ids         = aws_subnet.demo[*].id
+    subnet_ids         = aws_subnet.public[*].id
   }
 }
