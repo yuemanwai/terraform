@@ -8,7 +8,7 @@
 /workspaces/terraform
 ├── .devcontainer                # Dev container 配置文件夾
 │   └── devcontainer.json        # Dev container 配置文件
-├── terraform_aws_fyp            # AWS Terraform 配置文件夾
+├── terraform_aws                # AWS Terraform 配置文件夾
 │   ├── eks-cluster.tf           # EKS 集群配置
 │   ├── eks-worker-nodes.tf      # EKS 工作節點配置
 │   ├── main.tf                  # 主配置文件
@@ -16,12 +16,12 @@
 │   ├── variables.tf             # 變量配置
 │   ├── vpc.tf                   # VPC 配置
 │   └── workstation-external-ip.tf # 工作站外部 IP 配置
-├── terraform_azure_fyp          # Azure Terraform 配置文件夾
+├── terraform_azure              # Azure Terraform 配置文件夾
 │   ├── main.tf                  # 主配置文件
 │   ├── outputs.tf               # 輸出變量配置
 │   ├── variables.tf             # 變量配置
 │   └── vpc.tf                   # VPC 配置
-├── terraform_gcp_fyp            # GCP Terraform 配置文件夾
+├── terraform_gcp                # GCP Terraform 配置文件夾
 │   ├── main.tf                  # 主配置文件
 │   ├── outputs.tf               # 輸出變量配置
 │   ├── variables.tf             # 變量配置
@@ -76,4 +76,3 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 ### 配置 GCP
 
 請參考 [terraform_gcp_fyp/README.md](./terraform_gcp_fyp/README.md) 以獲取詳細步驟。
-
