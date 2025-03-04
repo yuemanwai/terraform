@@ -1,37 +1,21 @@
 # terraform
 
-## 文件夾結構
-
-以下是項目的文件夾結構圖表：
-
-```plaintext
-/workspaces/terraform
-├── .devcontainer                # Dev container 配置文件夾
-│   └── devcontainer.json        # Dev container 配置文件
-├── terraform_aws                # AWS Terraform 配置文件夾
-│   ├── eks-cluster.tf           # EKS 集群配置
-│   ├── eks-worker-nodes.tf      # EKS 工作節點配置
-│   ├── main.tf                  # 主配置文件
-│   ├── outputs.tf               # 輸出變量配置
-│   ├── variables.tf             # 變量配置
-│   ├── vpc.tf                   # VPC 配置
-│   └── workstation-external-ip.tf # 工作站外部 IP 配置
-├── terraform_azure              # Azure Terraform 配置文件夾
-│   ├── main.tf                  # 主配置文件
-│   ├── outputs.tf               # 輸出變量配置
-│   ├── variables.tf             # 變量配置
-│   └── vpc.tf                   # VPC 配置
-├── terraform_gcp                # GCP Terraform 配置文件夾
-│   ├── main.tf                  # 主配置文件
-│   ├── outputs.tf               # 輸出變量配置
-│   ├── variables.tf             # 變量配置
-│   └── vpc.tf                   # VPC 配置
-└── README.md                    # 項目說明文件
-```
-
 ## 使用 Terraform 創建 Kubernetes 服務
 
 以下是使用 Terraform 在三個主要雲提供商（AWS、Azure 和 GCP）上創建 Kubernetes 服務的步驟。
+
+## learn-terraform-multicloud-kubernetes 教學網址 (aws eks + azure aks)
+
+https://developer.hashicorp.com/terraform/tutorials/networking/multicloud-kubernetes#provision-an-aks-cluster
+
+For this tutorial, you will need:
+
+- Terraform 0.14+ installed locally
+- an AWS account with credentials configured for Terraform
+- the AWS CLI
+- an Azure account
+- the Azure CLI
+- kubectl
 
 ### 安裝 Terraform
 
@@ -71,8 +55,64 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 
 ### 配置 Azure
 
-請參考 [terraform_azure/README.md](./terraform_azure/README.md) 以獲取詳細步驟。
+#### 安裝 Azure CLI
+
+```sh
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+```
+
+#### 安裝 kubectl
+
+```sh
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client --output=yaml
+```
+
+#### 配置 Azure CLI
+
+1. 登錄 Azure：
+
+   ```sh
+   az login
+   ```
+
+2. 創建服務主體：
+
+   ```sh
+   az ad sp create-for-rbac --skip-assignment
+   {
+   "appId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+   "displayName": "azure-cli-2021-04-22-17-52-06",
+   "name": "http://azure-cli-2021-04-22-17-52-06",
+   "password": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "tenant": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+   }
+   ```
+
+3. 重命名並更新 `terraform.tfvars` 文件，填入真實的 `appId` 和 `password`：
+
+   ```sh
+   mv terraform.tfvars.example terraform.tfvars
+   ```
+
+4. 註冊 Microsoft.ContainerService 資源提供者：
+
+   ```sh
+   az provider register --namespace Microsoft.ContainerService
+   ```
+
+5. 檢查註冊狀態：
+
+   ```sh
+   az provider show --namespace Microsoft.ContainerService --query registrationState
+   ```
 
 ### 配置 GCP
 
 請參考 [terraform_gcp/README.md](./terraform_gcp/README.md) 以獲取詳細步驟。
+
+## 其他參考
+
+印度老師的教學視頻：
+https://www.youtube.com/watch?v=RUoejLILgyA&ab_channel=KodeKloud

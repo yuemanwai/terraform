@@ -23,7 +23,7 @@ module "vpc" {
 
   name            = "education-eks"
   cidr            = "10.0.0.0/16"
-  azs             = element(["us-east-1a", "us-east-1b"], count.index)
+  azs             = ["us-east-1a", "us-east-1b"]
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.3.0/24", "10.0.4.0/24"]
 
@@ -46,6 +46,10 @@ module "vpc" {
   }
 }
 
+# Use existing IAM role
+data "aws_iam_role" "lab_role" {
+  name = "LabRole"
+}
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -69,6 +73,7 @@ module "eks" {
       min_size       = 1
       max_size       = 3
       desired_size   = 3
+      iam_role_arn   = data.aws_iam_role.lab_role.arn
     }
   }
 
