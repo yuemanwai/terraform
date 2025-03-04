@@ -71,8 +71,8 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 
 ### 配置 Azure
 
-請參考 [terraform_azure_fyp/README.md](./terraform_azure_fyp/README.md) 以獲取詳細步驟。
+請參考 [terraform_azure/README.md](./terraform_azure/README.md) 以獲取詳細步驟。
 
 ### 配置 GCP
 
-請參考 [terraform_gcp_fyp/README.md](./terraform_gcp_fyp/README.md) 以獲取詳細步驟。
+請參考 [terraform_gcp/README.md](./terraform_gcp/README.md) 以獲取詳細步驟。
