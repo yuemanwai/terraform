@@ -3,10 +3,9 @@
 
 provider "aws" {
   region = "us-east-2"
-  shared_config_files      = ["~/.aws/config"]
-  shared_credentials_files = ["~/.aws/credentials"]
-  profile                  = var.aws_profile
 }
+
+data "aws_availability_zones" "available" {}
 
 locals {
   cluster_name = "education-eks-${random_string.suffix.result}"
@@ -23,9 +22,9 @@ module "vpc" {
 
   name            = "education-eks"
   cidr            = "10.0.0.0/16"
-  azs             = ["us-east-1a", "us-east-1b"]
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets  = ["10.0.3.0/24", "10.0.4.0/24"]
+  azs             = data.aws_availability_zones.available.names
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 
   enable_nat_gateway   = true
   single_nat_gateway   = true
@@ -46,10 +45,6 @@ module "vpc" {
   }
 }
 
-# Use existing IAM role
-data "aws_iam_role" "lab_role" {
-  name = "LabRole"
-}
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -73,7 +68,6 @@ module "eks" {
       min_size       = 1
       max_size       = 3
       desired_size   = 3
-      iam_role_arn   = data.aws_iam_role.lab_role.arn
     }
   }
 

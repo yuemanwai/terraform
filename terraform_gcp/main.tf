@@ -49,6 +49,8 @@ resource "google_container_cluster" "default" {
   subnetwork         = google_compute_subnetwork.default.name
   project            = var.project
 
+  deletion_protection = false
+
   // Use legacy ABAC until these issues are resolved: 
   //   https://github.com/mcuadros/terraform-provider-helm/issues/56
   //   https://github.com/terraform-providers/terraform-provider-kubernetes/pull/73
