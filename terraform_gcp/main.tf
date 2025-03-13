@@ -11,7 +11,7 @@ variable "network_name" {
 }
 
 variable "project" {
-  default = "spheric-verve-402203"
+  default = "my-final-year-project-e02"
 }
 
 provider "google" {
