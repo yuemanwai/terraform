@@ -13,31 +13,5 @@
       ]
     }
   },
-  "postCreateCommand": [
-    "terraform --version",
-    // 安裝 aws cli
-    "curl \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\"",
-    "unzip -u awscliv2.zip",
-    "sudo ./aws/install",
-    "rm -rf awscliv2.zip aws",
-    "aws --version",
-    "mkdir -p ~/.aws",
-    "touch ~/.aws/config ~/.aws/credentials",
-    "echo \"[default]\" > ~/.aws/config",
-    "echo \"region = us-east-1\" >> ~/.aws/config",
-    "echo \"output = json\" >> ~/.aws/config",
-    "echo \"\" >> ~/.aws/config",
-    "echo \"[profile my-profile]\" >> ~/.aws/config",
-    "echo \"role_arn = YOUR_LABROLE_ARN\" >> ~/.aws/config",
-    "echo \"source_profile = default\" >> ~/.aws/config",
-    "code ~/.aws/config",
-    "code ~/.aws/credentials",
-    // 安裝 kubectl
-    "curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\"",
-    "sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl",
-    "kubectl version --client --output=yaml",
-    // 安裝 Azure CLI
-    "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
-  ],
-  "postAttachCommand": ["code ~/.aws/config", "code ~/.aws/credentials"]
+  "postStartCommand": "chmod +x setup.sh && ./setup.sh"
 }

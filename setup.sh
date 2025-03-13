@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# 安裝 AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+unzip -u awscliv2.zip
+sudo ./aws/install
+rm -rf awscliv2.zip aws
+
+# 配置 AWS CLI
+mkdir -p ~/.aws
+touch ~/.aws/config ~/.aws/credentials
+
+cat <<EOL > ~/.aws/config
+[default]
+region = us-east-1
+output = json
+
+[profile my-profile]
+role_arn = YOUR_LABROLE_ARN
+source_profile = default
+EOL
+
+# 打開配置文件進行編輯
+code ~/.aws/config
+code ~/.aws/credentials
+
+# 安裝 kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client --output=yaml
+
+# 安裝 Azure CLI
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+# 驗證安裝
+aws --version
+kubectl version
+az version
