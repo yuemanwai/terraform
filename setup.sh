@@ -32,7 +32,7 @@ kubectl version --client --output=yaml
 # 安裝 Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-# 安裝 Google Cloud SDK
+# 安裝 Google Cloud SDK (有步驟要手動)
 sudo apt-get update
 sudo apt-get install apt-transport-https ca-certificates gnupg curl
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg -y
