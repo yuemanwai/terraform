@@ -18,15 +18,15 @@ resource "google_compute_address" "default" {
   project = var.project
 }
 
-resource "kubernetes_service" "nginx" {
+resource "kubernetes_service" "simple-website" {
   metadata {
     namespace = kubernetes_namespace.staging.metadata[0].name
-    name      = "nginx"
+    name      = "simple-website"
   }
 
   spec {
     selector = {
-      run = "nginx"
+      run = "simple-website"
     }
 
     session_affinity = "ClientIP"
@@ -42,31 +42,31 @@ resource "kubernetes_service" "nginx" {
   }
 }
 
-resource "kubernetes_replication_controller" "nginx" {
+resource "kubernetes_replication_controller" "simple-website" {
   metadata {
-    name      = "nginx"
+    name      = "simple-website"
     namespace = kubernetes_namespace.staging.metadata[0].name
     labels = {
-      run = "nginx"
+      run = "simple-website"
     }
   }
 
   spec {
     selector = {
-      run = "nginx"
+      run = "simple-website"
     }
 
     template {
       metadata {
         labels = {
-          run = "nginx"
+          run = "simple-website"
         }
       }
 
       spec {
         container {
           image = "yuemanwai/simple-website:latest"
-          name  = "nginx"
+          name  = "simple-website"
 
           resources {
             limits = {
