@@ -1,39 +1,20 @@
 # terraform
 
+以下教學都係基於 linux ubuntu 環境
+
 ## 使用 Terraform 創建 Kubernetes 服務
 
 以下是使用 Terraform 在三個主要雲提供商（AWS、Azure 和 GCP）上創建 Kubernetes 服務的步驟。
 
-## learn-terraform-multicloud-kubernetes 教學網址 (aws eks + azure aks)
+首先，如果你使用 devcontainer 開 codespace，應該已經自動運行了 `setup.sh`，這個 script 用來安裝基本工具，包括 AWS CLI、Azure CLI、kubectl、gcloud CLI。其中 gcloud CLI 安裝過程需要手動驗證身份，請照指示操作。
 
-https://developer.hashicorp.com/terraform/tutorials/networking/multicloud-kubernetes#provision-an-aks-cluster
+之後，你需要按以下的資料做登入及驗證。
 
-For this tutorial, you will need:
+## 配置 AWS CLI
 
-- Terraform 0.14+ installed locally
-- an AWS account with credentials configured for Terraform
-- the AWS CLI
-- an Azure account
-- the Azure CLI
-- kubectl
+在運行 `setup.sh` 後，您需要在 `~/.aws/config` 和 `~/.aws/credentials` 文件中添加必要的內容。
 
-### 安裝 Terraform
-
-1. 下載並安裝 Terraform，請參考 [官方文檔](https://learn.hashicorp.com/tutorials/terraform/install-cli)。
-2. 驗證安裝是否成功：
-   ```sh
-   terraform -v
-   ```
-
-### 配置 AWS
-
-請參考 [官方文檔](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) 以獲取詳細步驟。
-
-#### 配置 AWS CLI
-
-在使用 Terraform 配置 AWS 之前，您需要在 `~/.aws/config` 和 `~/.aws/credentials` 文件中添加必要的內容。
-
-##### ~/.aws/config
+#### ~/.aws/config (按需要手動更改)
 
 ```plaintext
 [default]
@@ -45,7 +26,7 @@ role_arn = YOUR_LABROLE_ARN
 source_profile = default
 ```
 
-##### ~/.aws/credentials
+#### ~/.aws/credentials (如果你用 aws academy learner lab, 每次重新 create session 都要更新 credendtial)
 
 ```plaintext
 [default]
@@ -53,23 +34,7 @@ aws_access_key_id = YOUR_ACCESS_KEY_ID
 aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 ```
 
-### 配置 Azure
-
-#### 安裝 Azure CLI
-
-```sh
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-```
-
-#### 安裝 kubectl
-
-```sh
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-kubectl version --client --output=yaml
-```
-
-#### 配置 Azure CLI
+## 配置 Azure CLI
 
 1. 登錄 Azure：
 
@@ -77,10 +42,11 @@ kubectl version --client --output=yaml
    az login
    ```
 
-2. 創建服務主體：
+2. 創建服務主體，取得真實的`appId` 和 `password`：
 
    ```sh
    az ad sp create-for-rbac --skip-assignment
+
    {
    "appId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
    "displayName": "azure-cli-2021-04-22-17-52-06",
@@ -108,11 +74,37 @@ kubectl version --client --output=yaml
    az provider show --namespace Microsoft.ContainerService --query registrationState
    ```
 
-### 配置 GCP
+## learn-terraform-multicloud-kubernetes 教學網址 (aws eks + azure aks)
 
-請參考 [terraform_gcp/README.md](./terraform_gcp/README.md) 以獲取詳細步驟。
+請參考 [官方文檔](https://developer.hashicorp.com/terraform/tutorials/networking/multicloud-kubernetes#provision-an-aks-cluster) 以獲取詳細步驟。
 
-## 其他參考
+需要以下工具：
 
-印度老師的教學視頻：
+- 本地安裝 Terraform 0.14+ 版本
+- 已配置 Terraform 憑證的 AWS 帳戶
+- AWS CLI
+- Azure 帳戶
+- Azure CLI
+- kubectl
+
+## 參考
+
+### 安裝及配置 gcloud CLI
+
+請參考 [官方文檔](https://cloud.google.com/sdk/docs/install?hl=zh-cn#deb) 以獲取詳細步驟。
+
+### 安裝及配置 kubectl
+
+請參考 [官方文檔](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) 以獲取詳細步驟。
+
+### 安裝及配置 Terraform
+
+請參考 [官方文檔](https://learn.hashicorp.com/tutorials/terraform/install-cli) 以獲取詳細步驟。
+
+### 安裝及配置 AWS CLI
+
+請參考 [官方文檔](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) 以獲取詳細步驟。
+
+### 印度老師的教學 video
+
 https://www.youtube.com/watch?v=RUoejLILgyA&ab_channel=KodeKloud
