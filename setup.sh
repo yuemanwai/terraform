@@ -20,10 +20,6 @@ role_arn = YOUR_LABROLE_ARN
 source_profile = default
 EOL
 
-# 打開配置文件進行編輯
-code ~/.aws/config
-code ~/.aws/credentials
-
 # 安裝 kubectl
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
@@ -32,7 +28,7 @@ kubectl version --client --output=yaml
 # 安裝 Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-# 安裝 Google Cloud SDK (有步驟要手動)
+# 安裝 gcloud CLI (有步驟要手動)
 sudo apt-get update
 sudo apt-get install apt-transport-https ca-certificates gnupg curl
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg -y
