@@ -8,11 +8,11 @@
 # to the Kubernetes cluster.
 #
 
-data "http" "workstation-external-ip" {
-  url = "http://ipv4.icanhazip.com"
-}
+# data "http" "workstation-external-ip" {
+#   url = "http://ipv4.icanhazip.com"
+# }
 
-# Override with variable or hardcoded value if necessary
-locals {
-  workstation-external-cidr = "${chomp(data.http.workstation-external-ip.response_body)}/32"
-}
+# # Override with variable or hardcoded value if necessary
+# locals {
+#   workstation-external-cidr = "${chomp(data.http.workstation-external-ip.response_body)}/32"
+# }

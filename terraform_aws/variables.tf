@@ -3,12 +3,17 @@ variable "aws_region" {
 }
 
 variable "aws_profile" {
-  description = "The AWS profile to use from the .aws/config file"
+  description = "The AWS profile to use from the ~/.aws/config file"
   type        = string
   default     = "default"
 }
 
 variable "cluster_name" {
   default = "terraform-eks-demo"
+  type    = string
+}
+
+variable "myip" {
+  default = "112.120.137.102"
   type    = string
 }

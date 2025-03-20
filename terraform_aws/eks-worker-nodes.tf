@@ -4,20 +4,20 @@
 #  * EKS Node Group to launch worker nodes
 #
 
-resource "aws_iam_role_policy_attachment" "demo-node-AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = data.aws_iam_role.lab_role.name
-}
+# resource "aws_iam_role_policy_attachment" "demo-node-AmazonEKSWorkerNodePolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+#   role       = data.aws_iam_role.lab_role.name
+# }
 
-resource "aws_iam_role_policy_attachment" "demo-node-AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = data.aws_iam_role.lab_role.name
-}
+# resource "aws_iam_role_policy_attachment" "demo-node-AmazonEKSClusterPolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+#   role       = data.aws_iam_role.lab_role.name
+# }
 
-resource "aws_iam_role_policy_attachment" "demo-node-AmazonEC2ContainerRegistryReadOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = data.aws_iam_role.lab_role.name
-}
+# resource "aws_iam_role_policy_attachment" "demo-node-AmazonEC2ContainerRegistryReadOnly" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+#   role       = data.aws_iam_role.lab_role.name
+# }
 
 resource "aws_eks_node_group" "demo" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
@@ -31,9 +31,9 @@ resource "aws_eks_node_group" "demo" {
     min_size     = 1
   }
 
-  depends_on = [
-    aws_iam_role_policy_attachment.demo-node-AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.demo-node-AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.demo-node-AmazonEC2ContainerRegistryReadOnly,
-  ]
+  # depends_on = [
+  #   aws_iam_role_policy_attachment.demo-node-AmazonEKSWorkerNodePolicy,
+  #   aws_iam_role_policy_attachment.demo-node-AmazonEKSClusterPolicy,
+  #   aws_iam_role_policy_attachment.demo-node-AmazonEC2ContainerRegistryReadOnly,
+  # ]
 }
