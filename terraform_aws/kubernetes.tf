@@ -122,11 +122,16 @@ resource "kubernetes_service" "nginx" {
   depends_on = [kubernetes_deployment.nginx]
 
   timeouts {
-    create = "10m"
+    create = "3m"
   }
 
   metadata {
     name = "nginx-example"
+    annotations = {
+      # "service.beta.kubernetes.io/aws-load-balancer-type" = "elb" # 或 "elb" 根據需要
+      "kubernetes.io/ingress.class" = "alb"
+      "alb.ingress.kubernetes.io/scheme" = "internet-facing"
+    }
   }
   spec {
     selector = {

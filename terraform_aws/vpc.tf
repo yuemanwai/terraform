@@ -40,6 +40,7 @@ resource "aws_subnet" "private" {
   tags = tomap({
     "Name"                                      = "terraform-eks-demo-private-${count.index}",
     "kubernetes.io/cluster/${var.cluster_name}" = "shared",
+    "kubernetes.io/role/internal-elb"           = "1"
   })
 }
 
