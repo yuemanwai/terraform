@@ -28,6 +28,11 @@ kubectl version --client --output=yaml
 # 安裝 Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
+cat <<EOL > terraform.tfvars
+appId    = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+password = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+EOL
+
 # 安裝 gcloud CLI (有步驟要手動)
 sudo apt-get update
 sudo apt-get install apt-transport-https ca-certificates gnupg curl
