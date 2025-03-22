@@ -102,6 +102,28 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
    }
    ```
 
+## 安裝 Helm
+
+以下是安裝 Helm 的步驟：
+
+   ```sh
+   curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+   sudo apt-get install apt-transport-https --yes
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+   sudo apt-get update
+   sudo apt-get install helm
+   ```
+1. 添加 Helm 的 GPG 密鑰：
+2. 安裝 `apt-transport-https`：
+3. 添加 Helm 的 APT 存儲庫：
+4. 更新 APT 包索引：
+5. 安裝 Helm：
+6. 驗證 Helm 安裝：
+
+   ```sh
+   helm version
+   ```
+
 ## learn-terraform-multicloud-kubernetes 教學網址 (aws eks + azure aks)
 
 請參考 [官方文檔](https://developer.hashicorp.com/terraform/tutorials/networking/multicloud-kubernetes#provision-an-aks-cluster) 以獲取詳細步驟。

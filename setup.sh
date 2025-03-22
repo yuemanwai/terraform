@@ -28,7 +28,7 @@ kubectl version --client --output=yaml
 # 安裝 Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-cat <<EOL > terraform.tfvars
+cat <<EOL > ./terraform_azure/terraform.tfvars
 appId    = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 password = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 EOL
@@ -36,8 +36,8 @@ EOL
 # 安裝 gcloud CLI (有步驟要手動)
 sudo apt-get update
 sudo apt-get install apt-transport-https ca-certificates gnupg curl
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg -y
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list -y
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 sudo apt-get update && sudo apt-get install google-cloud-cli
 gcloud init
 gcloud auth application-default login
