@@ -1,19 +1,21 @@
-#
-# VPC Resources
-#  * VPC
-#  * Subnets
-#  * Internet Gateway
-#  * Route Table
-#
-
-
-resource "aws_vpc" "demo" {
+resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 
-  tags = tomap({
-    "Name"                                      = "terraform-eks-demo-node",
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared",
-  })
+  # tags = tomap({
+  #   "Name"                                      = "main",
+  #   "kubernetes.io/cluster/${var.cluster_name}" = "shared",
+  # })
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "igw"
+  }
 }
 
 resource "aws_subnet" "public" {
@@ -44,13 +46,6 @@ resource "aws_subnet" "private" {
   })
 }
 
-resource "aws_internet_gateway" "demo" {
-  vpc_id = aws_vpc.demo.id
-
-  tags = {
-    Name = "terraform-eks-demo"
-  }
-}
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.demo.id

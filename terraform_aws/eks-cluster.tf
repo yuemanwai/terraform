@@ -40,11 +40,14 @@ resource "aws_security_group_rule" "demo-cluster-ingress-workstation-https" {
 
 # EKS Cluster
 resource "aws_eks_cluster" "eks_cluster" {
-  name     = "eks-demo-cluster"
+  name     = "terraform-eks-demo"
   role_arn = data.aws_iam_role.lab_role.arn
 
   vpc_config {
     security_group_ids = [aws_security_group.demo-cluster.id]
-    subnet_ids         = aws_subnet.public[*].id
+    subnet_ids         = [
+      aws_subnet.public[*].id,
+      aws_subnet.private[*].id
+    ]
   }
 }

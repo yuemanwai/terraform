@@ -56,6 +56,8 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
    }
    ```
 
+   > **注意**: 請妥善保存生成的密碼，因為它只會顯示一次。如果遺失，您需要再次重置憑證。
+
 3. 重命名並更新 `terraform.tfvars` 文件，填入真實的 `appId` 和 `password`：
 
    ```sh
@@ -72,6 +74,32 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 
    ```sh
    az provider show --namespace Microsoft.ContainerService --query registrationState
+   ```
+
+## 重置 Azure CLI 憑證
+
+如果需要更新 Azure CLI 服務主體的憑證，可以使用以下命令：
+
+1. 列出服務主體，確認目標服務主體的 `AppId`：
+
+   ```sh
+   az ad sp list --query "[?contains(displayName, 'azure-cli-2025-03-04-09-30-15')].{Name:displayName, AppId:appId}" --output table
+   ```
+
+2. 重置服務主體的憑證，生成新的密碼：
+
+   ```sh
+   az ad sp credential reset --id <your-app-id>
+   ```
+
+   執行後會返回以下內容，請記下新的 `password` 和其他相關信息：
+
+   ```json
+   {
+     "appId": "azure-cli-2025-03-04-09-30-15",
+     "password": "new-generated-password",
+     "tenant": "your-tenant-id"
+   }
    ```
 
 ## learn-terraform-multicloud-kubernetes 教學網址 (aws eks + azure aks)
