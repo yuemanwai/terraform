@@ -1,0 +1,8 @@
+# 定義 Docker 映像的相關信息
+# image:
+#   repository: yuemanwai/simple-website  # 映像倉庫
+#   tag: latest                # 映像標籤
+#   pullPolicy: IfNotPresent           # 拉取策略
+
+# 定義應用的副本數量
+replicaCount: 2  # 副本數量
