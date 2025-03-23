@@ -101,7 +101,33 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
      "tenant": "your-tenant-id"
    }
    ```
+## 安裝 AWS IAM Authenticator
 
+以下是安裝 AWS IAM Authenticator 的步驟：
+
+1. 下載 AWS IAM Authenticator：
+
+   ```sh
+   curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/aws-iam-authenticator
+   ```
+
+2. 為二進制文件添加執行權限：
+
+   ```sh
+   chmod +x ./aws-iam-authenticator
+   ```
+
+3. 將二進制文件移動到 PATH 中的目錄：
+
+   ```sh
+   sudo mv ./aws-iam-authenticator /usr/local/bin
+   ```
+
+4. 測試 AWS IAM Authenticator 是否安裝成功：
+
+   ```sh
+   aws-iam-authenticator help
+   ```
 ## 安裝 Helm
 
 以下是安裝 Helm 的步驟：
@@ -124,18 +150,43 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
    helm version
    ```
 
-## learn-terraform-multicloud-kubernetes 教學網址 (aws eks + azure aks)
+## 配置多個 Kubernetes 集群上下文
 
-請參考 [官方文檔](https://developer.hashicorp.com/terraform/tutorials/networking/multicloud-kubernetes#provision-an-aks-cluster) 以獲取詳細步驟。
+以下是配置和切換多個 Kubernetes 集群上下文的步驟：
 
-需要以下工具：
+1. 將多個 kubeconfig 文件合併到一個文件中：
 
-- 本地安裝 Terraform 0.14+ 版本
-- 已配置 Terraform 憑證的 AWS 帳戶
-- AWS CLI
-- Azure 帳戶
-- Azure CLI
-- kubectl
+   ```sh
+   export KUBECONFIG=~/.kube/config:~/.kube/aws-kubeconfig:~/.kube/gcp-kubeconfig:~/.kube/azure-kubeconfig
+   kubectl config view --merge --flatten > ~/.kube/config
+   ```
+
+2. 查看當前的上下文列表：
+
+   ```sh
+   kubectl config get-contexts
+   ```
+
+3. 切換到 AWS 集群上下文並檢查 Pod：
+
+   ```sh
+   kubectl config use-context aws-context
+   kubectl get pods
+   ```
+
+4. 切換到 GCP 集群上下文並檢查 Pod：
+
+   ```sh
+   kubectl config use-context gcp-context
+   kubectl get pods
+   ```
+
+5. 切換到 Azure 集群上下文並檢查 Pod：
+
+   ```sh
+   kubectl config use-context azure-context
+   kubectl get pods
+      ```
 
 ## 參考
 
@@ -158,3 +209,16 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 ### 印度老師的教學 video
 
 https://www.youtube.com/watch?v=RUoejLILgyA&ab_channel=KodeKloud
+
+### learn-terraform-multicloud-kubernetes 教學網址 (aws eks + azure aks)
+
+請參考 [官方文檔](https://developer.hashicorp.com/terraform/tutorials/networking/multicloud-kubernetes#provision-an-aks-cluster) 以獲取詳細步驟。
+
+需要以下工具：
+
+- 本地安裝 Terraform 0.14+ 版本
+- 已配置 Terraform 憑證的 AWS 帳戶
+- AWS CLI
+- Azure 帳戶
+- Azure CLI
+- kubectl

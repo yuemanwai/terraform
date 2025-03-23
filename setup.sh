@@ -42,7 +42,13 @@ sudo apt-get update && sudo apt-get install google-cloud-cli
 gcloud init
 gcloud auth application-default login
 
+# 安裝 AWS IAM Authenticator
+curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/aws-iam-authenticator
+chmod +x ./aws-iam-authenticator
+sudo mv ./aws-iam-authenticator /usr/local/bin
+
 # 驗證安裝
 aws --version
 kubectl version
 az version
+aws-iam-authenticator help
