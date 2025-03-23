@@ -14,10 +14,6 @@ cat <<EOL > ~/.aws/config
 [default]
 region = us-east-1
 output = json
-
-[profile my-profile]
-role_arn = YOUR_LABROLE_ARN
-source_profile = default
 EOL
 
 # 安裝 kubectl
