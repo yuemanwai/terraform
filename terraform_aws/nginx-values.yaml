@@ -1,4 +1,4 @@
-# # 定義 Docker 映像的相關信息
+# 定義 Docker 映像的相關信息
 # image:
 #   repository: docker.io/yuemanwai/simple-website  # 映像倉庫
 #   tag: "latest"                # 映像標籤

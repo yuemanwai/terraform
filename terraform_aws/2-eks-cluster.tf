@@ -3,6 +3,8 @@
 
 provider "aws" {
   region = var.region
+  shared_config_files      = ["~/.aws/config"]
+  shared_credentials_files = ["~/.aws/credentials"]
 }
 
 # Filter out local zones, which are not currently supported 
