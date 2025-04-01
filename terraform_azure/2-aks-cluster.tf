@@ -45,5 +45,5 @@ resource "azurerm_kubernetes_cluster" "default" {
 
 resource "local_file" "kube_config_file" {
   content  = azurerm_kubernetes_cluster.default.kube_config_raw
-  filename = "~/.kube/config"
+  filename = "~/.kube/azure-kubeconfig"
 }

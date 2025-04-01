@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 provider "kubernetes" {
-  config_path = "~/.kube/config"
+  config_path = "~/.kube/azure-kubeconfig"
   
   host                   = azurerm_kubernetes_cluster.default.kube_config.0.host
   client_certificate     = base64decode(azurerm_kubernetes_cluster.default.kube_config.0.client_certificate)
