@@ -65,7 +65,7 @@ resource "kubernetes_replication_controller" "simple-website" {
 
       spec {
         container {
-          image = "yuemanwai/simple-website:basic"
+          image = "yuemanwai/simple-website:basic" # or nginx:latest
           name  = "simple-website"
 
           resources {
