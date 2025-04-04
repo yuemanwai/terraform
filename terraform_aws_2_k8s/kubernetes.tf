@@ -44,8 +44,23 @@ provider "kubernetes" {
   }
 }
 
+resource "kubernetes_secret_v1_data" "name" {
+  metadata {
+    name = "my-secret" # Name of the secret
+  }
+  data = {
+    username = base64encode("demo-Username-Admin3456") # Replace with your actual username
+    password = base64encode("demo-Pw-hfds78hafhU") # Replace with your actual password
+  }
+  # Note: The `data` block must contain base64-encoded values for the keys you want to store in the secret.
+  # Ensure that the keys in the `data` block match the environment variable names in the deployment if used.
+  # The `data` block can contain multiple key-value pairs, and each value must be base64-encoded.
+  # Example: `username` and `password` are used in the deployment's environment variables.
+  
+}
+
 resource "kubernetes_deployment" "nginx" {
-  # depends_on = [ kubernetes_secret_v1.name ] # Ensure the secret is created before the deployment
+  depends_on = [ kubernetes_secret_v1_data.name ] # Ensure the secret is created before the deployment
 
   metadata {
     name = "scalable-nginx-example"
@@ -132,19 +147,4 @@ resource "kubernetes_service" "nginx" {
 
     type = "LoadBalancer"
   }
-}
-
-resource "kubernetes_secret_v1_data" "name" {
-  metadata {
-    name = "my-secret" # Name of the secret
-  }
-  data = {
-    username = base64encode("demo-Username-Admin3456") # Replace with your actual username
-    password = base64encode("demo-Pw-hfds78hafhU") # Replace with your actual password
-  }
-  # Note: The `data` block must contain base64-encoded values for the keys you want to store in the secret.
-  # Ensure that the keys in the `data` block match the environment variable names in the deployment if used.
-  # The `data` block can contain multiple key-value pairs, and each value must be base64-encoded.
-  # Example: `username` and `password` are used in the deployment's environment variables.
-  
 }
