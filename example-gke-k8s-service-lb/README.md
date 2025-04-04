@@ -7,31 +7,40 @@ Example showing how to integrate the Terraform kubernetes provider with a Google
 <a href="https://concourse-tf.gcp.solutions/teams/main/pipelines/tf-examples-gke-service-lb" target="_blank">
 <img src="https://concourse-tf.gcp.solutions/api/v1/teams/main/pipelines/tf-examples-gke-service-lb/badge" /></a>
 
+## Change to the example directory
+
+```
+[[ `basename $PWD` != example-gke-k8s-service-lb ]] && cd example-gke-k8s-service-lb
+```
+
+## Install Terraform
+
+1. Install Terraform if it is not already installed (visit [terraform.io](https://terraform.io) for other distributions):
+
+```
+../terraform-install.sh
+```
 
 ## Set up the environment
 
+1. Set the project, replace `YOUR_PROJECT` with your project ID:
+
 ```
-cd /terraform_gcp
+PROJECT=YOUR_PROJECT
 ```
 
-### Configure the environment for Terraform:
-The following command is used to authenticate your local environment with Google Cloud.
-It allows Terraform to access your Google Cloud resources using your credentials.
+```
+gcloud config set project ${PROJECT}
+```
+
+2. Configure the environment for Terraform:
 
 ```
 [[ $CLOUD_SHELL ]] || gcloud auth application-default login
 export GOOGLE_PROJECT=$(gcloud config get-value project)
 ```
 
-### Set the project, replace `YOUR_PROJECT` with your project ID in main.tf line 15:
-
-```
-variable "project" {
-  default = "YOUR_PROJECT"
-}
-```
-
-### Run Terraform
+## Run Terraform
 
 ```
 terraform init
