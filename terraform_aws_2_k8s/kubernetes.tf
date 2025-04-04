@@ -88,7 +88,7 @@ resource "kubernetes_deployment" "nginx" {
           name  = "example"
 
           port {
-            container_port = 5000 # This should match the port exposed by the container
+            container_port = 80 # This should match the port exposed by the container
           }
 
           resources {
@@ -142,7 +142,7 @@ resource "kubernetes_service" "nginx" {
     }
     port {
       port        = 80 # This is the port on which the service will be exposed
-      target_port = 5000 # This should match the container port in the deployment
+      target_port = 80 # This should match the container port in the deployment
     }
 
     type = "LoadBalancer"
