@@ -71,7 +71,7 @@ resource "kubernetes_deployment" "nginx" {
           name  = "example"
 
           port {
-            container_port = 80
+            container_port = 5000 # This should match the port exposed by the container
           }
 
           resources {
