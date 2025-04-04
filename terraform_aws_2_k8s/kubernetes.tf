@@ -16,7 +16,7 @@ data "terraform_remote_state" "eks" {
   backend = "local"
 
   config = {
-    path = "../learn-terraform-provision-eks-cluster/terraform.tfstate"
+    path = "../terraform_aws_2_cluster/terraform.tfstate"
   }
 }
 
@@ -44,12 +44,11 @@ provider "kubernetes" {
   }
 }
 
-resource "kubernetes_deployment" "demo" {
+resource "kubernetes_deployment" "nginx" {
   metadata {
-    name = "my-deployment" # Name of the deployment
-    namespace = "default" # Ensure this matches the namespace where your deployment will be created
+    name = "scalable-nginx-example"
     labels = {
-      App = "my-app"
+      App = "ScalableNginxExample"
     }
   }
 
@@ -57,18 +56,18 @@ resource "kubernetes_deployment" "demo" {
     replicas = 2
     selector {
       match_labels = {
-        App = "my-app"
+        App = "ScalableNginxExample"
       }
     }
     template {
       metadata {
         labels = {
-          App = "my-app"
+          App = "ScalableNginxExample"
         }
       }
       spec {
         container {
-          image = "yuemanwai/simple-website:latest"
+          image = "yuemanwai/simple-website:latest" # nginx:1.7.8
           name  = "example"
 
           port {
@@ -85,60 +84,26 @@ resource "kubernetes_deployment" "demo" {
               memory = "50Mi"
             }
           }
-
-          env {
-            name = "username"
-            value_from {
-              secret_key_ref {
-                name = "db-secret" # Ensure this secret exists in the same namespace
-                key  = "username"  # The key in the secret you want to reference
-              }
-            }
-          }
-
-          env {
-            name = "ANOTHER_ENV_VAR"
-            value_from {
-              secret_key_ref {
-                name = "db-secret"
-                key  = "password"
-              }
-            }
-          }
         }
       }
     }
   }
 }
 
-resource "kubernetes_service" "demo" {
+
+resource "kubernetes_service" "nginx" {
   metadata {
-    name = "my-service" # Name of the service
-    namespace = "default" # Ensure this matches the namespace where your deployment is running
+    name = "nginx-example"
   }
   spec {
     selector = {
-      App = kubernetes_deployment.demo.spec.0.template.0.metadata[0].labels.App
+      App = kubernetes_deployment.nginx.spec.0.template.0.metadata[0].labels.App
     }
     port {
-      port        = 80
-      target_port = 80
+      port        = 80 # This is the port on which the service will be exposed
+      target_port = 5000 # This should match the container port in the deployment
     }
 
     type = "LoadBalancer"
   }
-}
-
-
-resource "kubernetes_secret" "demo" {
-  metadata {
-    name = "my-secret" # Name of the secret, can be referenced in the deployment
-    namespace = "default" # Ensure this matches the namespace where your deployment is running
-  }
-  data = {
-    # Base64 encode your values for username and password
-    username = base64encode("admin") # Example username
-    password = base64encode("password123") # Example password
-  }
-  type = "Opaque" # Default type for generic secrets
 }
