@@ -43,3 +43,14 @@ terraform.rc
 ~/.kube/*
 ~/.aws/*
 ~/.azure/*
+
+# certificates
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+*.jks
+*.p7b
+*.csr
+*.jceks

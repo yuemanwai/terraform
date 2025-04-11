@@ -53,7 +53,7 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
    az ad sp create-for-rbac --skip-assignment
    ```
 
-   > **注意**: 請妥善保存生成的密碼，因為它只會顯示一次。
+   > **注意**: 請妥善保存生成的密碼。
 
 3. 更新 `terraform.tfvars` 文件，填入真實的 `appId` 和 `password`：
 
