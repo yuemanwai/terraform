@@ -12,12 +12,6 @@ terraform {
   }
 }
 
-locals {
-  tls_crt = file("../tls.crt")
-  tls_key = file("../tls.key")
-}
-
-
 data "terraform_remote_state" "eks" {
   backend = "local"
 
@@ -154,108 +148,6 @@ resource "kubernetes_service" "nginx" {
     }
 
     type = "LoadBalancer"
-  }
-}
-
-
-#################################################################################################################
-# Ingress Controller Configuration
-resource "kubernetes_deployment" "nginx_ingress" {
-  depends_on = [kubernetes_secret_v1.tls]
-  metadata {
-    name      = "nginx-ingress-controller"
-    namespace = "kube-system"
-  }
-
-  timeouts {
-    create = "3m"
-    update = "3m"
-  }
-
-  spec {
-    replicas = 1
-
-    selector {
-      match_labels = {
-        app = "nginx-ingress"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          app = "nginx-ingress"
-        }
-      }
-
-      spec {
-        container {
-          name  = "nginx-ingress-controller"
-          image = "nginx-ingress-controller:latest"
-          port {
-            container_port = 80
-          }
-          port {
-            container_port = 443
-          }
-          args = [
-            "/nginx-ingress-controller",
-            "--configmap=kube-system/nginx-ingress-controller"
-          ]
-        }
-      }
-    }
-  }
-}
-
-
-
-
-#################################################################################################################
-# SSL/TLS Configuration
-resource "kubernetes_secret_v1" "tls" {
-  metadata {
-    name = "nginx-tls"
-    namespace = "default"
-  }
-
-  type = "kubernetes.io/tls"
-
-  data = {
-    # tls.crt = base64encode(file("/home/ymw/my_project/terraform/tls.crt")) # Path to your TLS certificate
-    # tls.key = base64encode(file("/home/ymw/my_project/terraform/tls.pem")) # Path to your TLS private key
-    "tls.crt" = local.tls_crt
-    "tls.key" = local.tls_key
-  
-  }
-}
-
-resource "kubernetes_ingress" "nginx" {
-  depends_on = [kubernetes_secret_v1.tls]
-  metadata {
-    name = "nginx-ingress"
-    annotations = {
-      "kubernetes.io/ingress.class" = "nginx"
-      "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
-    }
-  }
-  spec {
-    tls {
-      hosts = ["ashleyyue.me"] # Replace with your domain]
-      secret_name = kubernetes_secret_v1.tls.metadata[0].name
-    }
-    rule {
-      host = "ashleyyue.me" # Replace with your domain
-      http {
-        path {
-          path = "/"
-          backend {
-            service_name = kubernetes_service.nginx.metadata[0].name
-            service_port = 80
-          }
-        }
-      }
-    }
   }
 }
 
