@@ -33,3 +33,6 @@ server:
         - key: serverConfigJSON
           path: config.json
       load: true
+ui:
+  enabled: true
+  replicas: 1

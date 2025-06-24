@@ -26,9 +26,4 @@ meshGateway:
 ui:
   enabled: true
   replicas: 1
-  service:
-    type: LoadBalancer
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-type: nlb
-      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-    loadBalancerIP:
+
