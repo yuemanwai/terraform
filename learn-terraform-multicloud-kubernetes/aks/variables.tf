@@ -8,8 +8,3 @@ variable "appId" {
 variable "password" {
   description = "Azure Kubernetes Service Cluster password"
 }
-
-variable "location" {
-  description = "Azure region"
-  default     = "WEST US 2"
-}

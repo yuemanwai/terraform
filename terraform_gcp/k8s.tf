@@ -51,6 +51,11 @@ resource "kubernetes_replication_controller" "simple-website" {
     }
   }
 
+  timeouts {
+    create = "10m"
+    update = "10m"
+  }
+
   spec {
     selector = {
       run = "simple-website"

@@ -26,7 +26,7 @@ Example showing how to integrate the Terraform kubernetes provider with a Google
 1. Set the project, replace `YOUR_PROJECT` with your project ID:
 
 ```
-PROJECT=YOUR_PROJECT
+PROJECT=my-final-year-project-e02
 ```
 
 ```

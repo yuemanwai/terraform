@@ -44,7 +44,20 @@ provider "kubernetes" {
   }
 }
 
-resource "kubernetes_secret_v1_data" "name" {
+resource "kubernetes_secret" "name" {
+  metadata {
+
+    name = "my-secret-1" # Name of the secret
+  }
+  data = {
+    username = base64encode("demo-Username-Admin3456") # Replace with your actual username
+    password = base64encode("demo-Pw-hfds78hafhU") # Replace with your actual password
+  }
+}
+
+
+
+resource "kubernetes_secret_v1" "name" {
   metadata {
     name = "my-secret" # Name of the secret
   }
@@ -60,7 +73,7 @@ resource "kubernetes_secret_v1_data" "name" {
 }
 
 resource "kubernetes_deployment" "nginx" {
-  depends_on = [ kubernetes_secret_v1_data.name ] # Ensure the secret is created before the deployment
+  # depends_on = [ kubernetes_secret_v1_data.name ] # Ensure the secret is created before the deployment
 
   metadata {
     name = "scalable-nginx-example"
@@ -106,7 +119,7 @@ resource "kubernetes_deployment" "nginx" {
             name  = "USERNAME" # Example environment variable
             value_from {
               secret_key_ref {
-                name = kubernetes_secret_v1_data.name.metadata[0].name # This should match the name of the secret created above
+                name = kubernetes_secret_v1.name.metadata[0].name # This should match the name of the secret created above
                 key = "username" # Ensure this key exists in the secret
                 # Note: `key` should match the keys defined in the `kubernetes_secret_v1_data` resource.
                 # This will fetch the value of `username` from the secret and set it as an environment variable in the container.
@@ -118,13 +131,15 @@ resource "kubernetes_deployment" "nginx" {
             name  = "PASSWORD" # Another example environment variable
             value_from {
               secret_key_ref {
-                name = kubernetes_secret_v1_data.name.metadata[0].name
+                name = kubernetes_secret_v1.name.metadata[0].name
                 key  = "password" # Ensure this key exists in the secret
                 # Note: `key` should match the keys defined in the `kubernetes_secret_v1_data` resource.
                 # This will fetch the value of `password` from the secret and set it as an environment variable in the container.
               }
             }
           }
+
+
         }
       }
     }
