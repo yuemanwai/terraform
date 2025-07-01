@@ -151,6 +151,6 @@ resource "kubernetes_service" "dashboard" {
       target_port = 9002
     }
 
-    type             = "LoadBalancer"
+    type = "LoadBalancer"
   }
 }

@@ -1,9 +1,13 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+
 provider "aws" {
-  region = var.region
+  region     = var.region
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
 }
+
 
 # Filter out local zones, which are not currently supported 
 # with managed node groups
@@ -30,10 +34,10 @@ module "vpc" {
   name = "education-vpc"
 
   cidr = "10.0.0.0/16"
-  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
+  azs  = slice(data.aws_availability_zones.available.names, 0, 2)
 
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24"]
 
   enable_nat_gateway   = true
   single_nat_gateway   = true
@@ -58,11 +62,11 @@ module "eks" {
   cluster_endpoint_public_access           = true
   enable_cluster_creator_admin_permissions = true
 
-  cluster_addons = {
-    aws-ebs-csi-driver = {
-      service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
-    }
-  }
+  # cluster_addons = {
+  #   aws-ebs-csi-driver = {
+  #     service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+  #   }
+  # }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -83,15 +87,15 @@ module "eks" {
       desired_size = 2
     }
 
-    two = {
-      name = "node-group-2"
+    # two = {
+    #   name = "node-group-2"
 
-      instance_types = ["t3.small"]
+    #   instance_types = ["t3.small"]
 
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
-    }
+    #   min_size     = 1
+    #   max_size     = 2
+    #   desired_size = 1
+    # }
   }
 }
 
@@ -116,6 +120,17 @@ module "eks" {
 # resource "null_resource" "write_output" {
 #   depends_on = [module.eks]
 #   provisioner "local-exec" {
-#     command = "aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name) --kubeconfig ~/.kube/config"
+#     # command = "aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name) --kubeconfig ~/.kube/config"
+#     command = "aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)"
+#   }
+# }
+
+# resource "null_resource" "wait_for_cluster" {
+#   depends_on = [module.eks]
+#   provisioner "local-exec" {
+#       command = <<EOT
+#       echo "等待 EKS cluster 完成初始化..."
+#       aws eks wait cluster-active --name ${module.eks.cluster_name} --region ${var.region}
+#     EOT
 #   }
 # }

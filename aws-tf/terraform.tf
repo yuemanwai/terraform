@@ -3,11 +3,12 @@
 
 terraform {
 
-  # cloud {
-  #   workspaces {
-  #     name = "learn-terraform-eks"
-  #   }
-  # }
+  cloud {
+    organization = "it_dog"
+    workspaces {
+      name = "learn-terraform-eks"
+    }
+  }
 
   required_providers {
     aws = {
@@ -28,6 +29,11 @@ terraform {
     cloudinit = {
       source  = "hashicorp/cloudinit"
       version = "~> 2.3.4"
+    }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.16.1"
     }
   }
 
