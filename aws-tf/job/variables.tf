@@ -15,9 +15,3 @@ variable "aws_secret_access_key" {
   type        = string
   default     = ""
 }
-
-variable "db_username" {
-  description = "Database username"
-  type        = string
-  default     = ""
-}

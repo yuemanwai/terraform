@@ -16,8 +16,22 @@ output "region" {
   value       = var.region
 }
 
+output "vpc_id" {
+  value = module.vpc.vpc_id
+}
+
 output "cluster_name" {
   description = "Kubernetes Cluster Name"
   value       = module.eks.cluster_name
 }
 
+output "node_security_group_id" {
+  value       = module.eks.node_security_group_id
+  description = "Security group ids attached to the worker nodes"
+}
+
+output "private_subnet_ids" {
+  description = "Private subnet ids"
+  value       = module.vpc.private_subnets
+  
+}

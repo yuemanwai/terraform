@@ -50,6 +50,7 @@ module "vpc" {
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
   }
+
 }
 
 module "eks" {
@@ -116,21 +117,3 @@ module "eks" {
 #   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 # }
 
-
-# resource "null_resource" "write_output" {
-#   depends_on = [module.eks]
-#   provisioner "local-exec" {
-#     # command = "aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name) --kubeconfig ~/.kube/config"
-#     command = "aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)"
-#   }
-# }
-
-# resource "null_resource" "wait_for_cluster" {
-#   depends_on = [module.eks]
-#   provisioner "local-exec" {
-#       command = <<EOT
-#       echo "等待 EKS cluster 完成初始化..."
-#       aws eks wait cluster-active --name ${module.eks.cluster_name} --region ${var.region}
-#     EOT
-#   }
-# }

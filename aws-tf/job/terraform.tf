@@ -2,17 +2,20 @@ terraform {
   cloud {
     organization = "it_dog"
     workspaces {
-      name = "rds"
+      name = "job"
     }
   }
-  required_version = "~> 1.3"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.92.0"
+      version = ">= 4.48.0"
     }
 
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.16.1"
+    }
   }
 }
 
@@ -27,8 +30,19 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
+
+data "terraform_remote_state" "rds" {
+  backend = "remote"
+  config = {
+    organization = "it_dog"
+    workspaces = {
+      name = "rds"
+    }
+  }
+}
+
 provider "aws" {
-  region = data.terraform_remote_state.vpc.outputs.region
+  region     = var.region
   access_key = var.aws_access_key_id
   secret_key = var.aws_secret_access_key
 }
