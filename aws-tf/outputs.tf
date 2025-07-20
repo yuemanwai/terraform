@@ -25,6 +25,11 @@ output "cluster_name" {
   value       = module.eks.cluster_name
 }
 
+output "oidc_provider" {
+  description = "OIDC provider URL for the EKS cluster"
+  value       = module.eks.oidc_provider
+}
+
 output "node_security_group_id" {
   value       = module.eks.node_security_group_id
   description = "Security group ids attached to the worker nodes"
@@ -33,5 +38,14 @@ output "node_security_group_id" {
 output "private_subnet_ids" {
   description = "Private subnet ids"
   value       = module.vpc.private_subnets
-  
+
+}
+
+
+output "cert_arn" {
+  value = aws_acm_certificate.web_cert.arn
+}
+
+output "domain_validation_options" {
+  value = aws_acm_certificate.web_cert.domain_validation_options
 }

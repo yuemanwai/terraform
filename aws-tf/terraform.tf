@@ -35,6 +35,11 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = ">= 2.16.1"
     }
+
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 5.7"
+    }
   }
 
   required_version = "~> 1.3"

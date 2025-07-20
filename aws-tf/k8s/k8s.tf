@@ -32,9 +32,9 @@ resource "kubernetes_deployment" "nginx" {
   depends_on = [kubernetes_secret_v1.demo-secret] # Ensure the secret is created before the deployment
 
   metadata {
-    name = "scalable-nginx-example"
+    name = "my-app-example"
     labels = {
-      App = "ScalableNginxExample"
+      App = "my-app"
     }
   }
 
@@ -42,13 +42,13 @@ resource "kubernetes_deployment" "nginx" {
     replicas = 2
     selector {
       match_labels = {
-        App = "ScalableNginxExample"
+        App = "my-app"
       }
     }
     template {
       metadata {
         labels = {
-          App = "ScalableNginxExample"
+          App = "my-app"
         }
       }
       spec {
