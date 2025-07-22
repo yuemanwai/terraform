@@ -21,3 +21,40 @@ variable "cloudflare_api_token" {
   type        = string
   default     = ""
 }
+
+# ================================================================================================================== #
+
+variable "domain_name" {
+  description = "The domain name for the Flask Ingress (e.g., example.com)."
+  type        = string
+  default     = ""
+}
+
+# ================================================================================================================== #
+
+variable "app_name" {
+  description = "Name of the Flask application."
+  type        = string
+}
+
+variable "app_namespace" {
+  description = "Namespace for the Flask application deployment."
+  type        = string
+}
+
+variable "app_image" {
+  description = "Docker image for the Flask application."
+  type        = string
+}
+
+variable "app_port" {
+  description = "Port the Flask application listens on inside the container."
+  type        = number
+}
+
+variable "service_port" {
+  description = "Port the Kubernetes Service exposes to the Ingress."
+  type        = number
+}
+
+

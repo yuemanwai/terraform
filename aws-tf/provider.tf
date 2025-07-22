@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 terraform {
+  required_version = "~> 1.3"
 
   cloud {
     organization = "it_dog"
@@ -41,7 +42,14 @@ terraform {
       version = "~> 5.7"
     }
   }
-
-  required_version = "~> 1.3"
 }
 
+provider "aws" {
+  region     = var.region
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}

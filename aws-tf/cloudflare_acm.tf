@@ -1,30 +1,18 @@
-# locals {
-#   fqdn = "__acme-challenge.${data.cloudflare_zone.main.name}"
-# }
-
-
-provider "cloudflare" {
-  api_token = var.cloudflare_api_token
-}
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate
 resource "aws_acm_certificate" "web_cert" {
-  domain_name       = "ashleyyue.me"
+  domain_name       = var.domain_name
   validation_method = "DNS"
 
   lifecycle {
     create_before_destroy = true
   }
-
 }
+
 
 # https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/data-sources/zone
 data "cloudflare_zone" "main" {
-  zone_id = "d14cba3a4304aa8d2bfbc003733afa12"
-  # filter = {
-  #   name   = aws_acm_certificate.web_cert.domain_name
-  #   status = "active"
-  # }
+  zone_id = var.cloudflare_zone_id
 }
 
 
@@ -47,8 +35,6 @@ resource "cloudflare_dns_record" "acm_validation" {
 }
 
 
-
-
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation
 resource "aws_acm_certificate_validation" "web_cert_validation" {
   certificate_arn         = aws_acm_certificate.web_cert.arn
@@ -57,5 +43,5 @@ resource "aws_acm_certificate_validation" "web_cert_validation" {
   ]
   depends_on = [cloudflare_dns_record.acm_validation]
 }
-# 好像不用加這段
+# 不用在record.name後加這段, 會出error, stackoverflow好多人中招
 # .${data.cloudflare_zone.main.name}.

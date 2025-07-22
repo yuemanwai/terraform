@@ -1,16 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
 
-
-provider "aws" {
-  region     = var.region
-  access_key = var.aws_access_key_id
-  secret_key = var.aws_secret_access_key
-}
-
-
-# Filter out local zones, which are not currently supported 
-# with managed node groups
 data "aws_availability_zones" "available" {
   filter {
     name   = "opt-in-status"
@@ -117,32 +105,32 @@ module "eks" {
 #   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 # }
 
-resource "aws_iam_policy" "alb_controller" {
-  name        = "AWSLoadBalancerControllerIAMPolicy"
-  path        = "/"
-  description = "IAM policy for AWS Load Balancer Controller"
-  policy      = file("${path.module}/iam_policy.json")  # 下載官方 JSON
-}
+# resource "aws_iam_policy" "alb_controller" {
+#   name        = "AWSLoadBalancerControllerIAMPolicy"
+#   path        = "/"
+#   description = "IAM policy for AWS Load Balancer Controller"
+#   policy      = file("${path.module}/iam_policy.json")  # 下載官方 JSON
+# }
 
-module "alb_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  role_name = "aws-load-balancer-controller"
+# module "alb_irsa" {
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+#   role_name = "aws-load-balancer-controller"
 
-  oidc_providers = {
-    main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
-    }
-  }
+#   oidc_providers = {
+#     main = {
+#       provider_arn               = module.eks.oidc_provider_arn
+#       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
+#     }
+#   }
 
-  tags = {
-    Name = "alb-irsa"
-  }
-}
+#   tags = {
+#     Name = "alb-irsa"
+#   }
+# }
 
-resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
-  role       = module.alb_irsa.iam_role_name
-  policy_arn = aws_iam_policy.alb_controller.arn
-}
+# resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
+#   role       = module.alb_irsa.iam_role_name
+#   policy_arn = aws_iam_policy.alb_controller.arn
+# }
 
 
