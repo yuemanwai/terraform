@@ -20,7 +20,7 @@ resource "aws_security_group" "rds_sg" {
       from_port         = 5432
       to_port           = 5432
       protocol          = "tcp"
-      cidr_blocks       = ["112.120.137.102/32"]  # 👈 你自己電腦的 IP
+      cidr_blocks       = ["112.120.137.102/32"]  # 👈 我的 IP
       description       = "Allow my IP to access RDS PostgreSQL"
       }
 

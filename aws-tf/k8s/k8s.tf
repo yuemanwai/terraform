@@ -13,20 +13,28 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.eks.token
 }
 
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+    token                  = data.aws_eks_cluster_auth.eks.token
+  }
+}
+
 # ================================================================================================================== #
 
-resource "kubernetes_secret_v1" "demo-secret" {
-  metadata {
-    name = "my-secret"
-  }
+# resource "kubernetes_secret_v1" "demo-secret" {
+#   metadata {
+#     name = "my-secret"
+#   }
 
-  data = {
-    username = base64encode("demo-Username-Admin3456") # Replace with your actual username
-    password = base64encode("demo-Pw-hfds78hafhU")     # Replace with your actual password
-  }
+#   data = {
+#     username = base64encode("demo-Username-Admin3456") # Replace with your actual username
+#     password = base64encode("demo-Pw-hfds78hafhU")     # Replace with your actual password
+#   }
 
-  type = "Opaque"
-}
+#   type = "Opaque"
+# }
 
 resource "kubernetes_deployment" "nginx" {
   depends_on = [kubernetes_secret_v1.demo-secret] # Ensure the secret is created before the deployment

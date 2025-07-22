@@ -49,3 +49,7 @@ output "cert_arn" {
 output "domain_validation_options" {
   value = aws_acm_certificate.web_cert.domain_validation_options
 }
+
+output "module_path" {
+  value = path.module
+}

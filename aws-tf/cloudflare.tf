@@ -20,10 +20,11 @@ resource "aws_acm_certificate" "web_cert" {
 
 # https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/data-sources/zone
 data "cloudflare_zone" "main" {
-  filter = {
-    name   = aws_acm_certificate.web_cert.domain_name
-    status = "active"
-  }
+  zone_id = "d14cba3a4304aa8d2bfbc003733afa12"
+  # filter = {
+  #   name   = aws_acm_certificate.web_cert.domain_name
+  #   status = "active"
+  # }
 }
 
 

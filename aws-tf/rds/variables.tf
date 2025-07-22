@@ -16,8 +16,15 @@ variable "aws_secret_access_key" {
   default     = ""
 }
 
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token"
+  type        = string
+  default     = ""
+}
+
 variable "db_username" {
   description = "Database username"
   type        = string
   default     = ""
 }
+
