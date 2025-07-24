@@ -51,12 +51,3 @@ output "node_security_group_id" {
   value       = module.eks.node_security_group_id
 }
 
-# cloudflare & ACM =================================================================================================================== #
-
-output "certificate_arn" {
-  value = aws_acm_certificate.web_cert.arn
-}
-
-output "domain_validation_options" {
-  value = aws_acm_certificate.web_cert.domain_validation_options
-}

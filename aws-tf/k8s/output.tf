@@ -12,3 +12,9 @@ output "flask_app_url" {
   description = "The primary URL for the Flask application (HTTPS)."
   value       = "https://${var.domain_name}"
 }
+
+# cloudflare & ACM =================================================================================================================== #
+
+output "domain_validation_options" {
+  value = aws_acm_certificate.web_cert.domain_validation_options
+}

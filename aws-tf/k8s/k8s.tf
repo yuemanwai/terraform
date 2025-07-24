@@ -40,11 +40,6 @@ module "eks_blueprints_addons" {
 }
 # ================================================================================================================== #
 
-# # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version
-# data "aws_secretsmanager_secret_version" "secret-version" {
-#   secret_id = data.terraform_remote_state.rds.outputs.db_password_arn
-# }
-
 # https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1
 resource "kubernetes_namespace_v1" "app_ns" {
   depends_on = [ module.eks_blueprints_addons ]
@@ -153,7 +148,7 @@ resource "kubernetes_service_v1" "flask_app_service" {
 }
 
 resource "kubernetes_ingress_v1" "flask_app_ingress" {
-  depends_on = [kubernetes_service_v1.flask_app_service]
+  depends_on = [aws_acm_certificate.web_cert, kubernetes_service_v1.flask_app_service]
 
   metadata {
     name      = "${var.app_name}-ingress"
@@ -170,7 +165,7 @@ resource "kubernetes_ingress_v1" "flask_app_ingress" {
       "alb.ingress.kubernetes.io/healthcheck-path"          = "/"
       "alb.ingress.kubernetes.io/success-codes"             = "200-399"
       "alb.ingress.kubernetes.io/manage-backend-security-group-rules" = "true"
-      "alb.ingress.kubernetes.io/certificate-arn"           = data.terraform_remote_state.rds.outputs.certificate_arn # 使用 ACM 證書 ARN
+      "alb.ingress.kubernetes.io/certificate-arn"           = aws_acm_certificate.web_cert.arn # 使用 ACM 證書 ARN
       "alb.ingress.kubernetes.io/target-type"               = "ip" # EKS Fargate 或直接到 Pod IP
     }
   }
