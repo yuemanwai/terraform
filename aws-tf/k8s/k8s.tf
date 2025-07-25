@@ -1,5 +1,11 @@
 
 # ================================================================================================================== #
+# 當用module "eks_blueprints_addons" 時，曾經出現 Warning: Deprecated attribute
+# 發現是 region = data.aws_region.current.name 寫法錯誤
+# 但現在已經沒有這個問題了, 因為我更新了 region 的寫法  region = data.aws_region.current.region
+# 詳情可以睇返 terraform > aws > aws_region 的官方文檔
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region
+# ================================================================================================================== #
 
 # https://registry.terraform.io/modules/aws-ia/eks-blueprints-addons/aws/latest
 module "eks_blueprints_addons" {
@@ -40,17 +46,9 @@ module "eks_blueprints_addons" {
 }
 # ================================================================================================================== #
 
-# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1
-resource "kubernetes_namespace_v1" "app_ns" {
-  depends_on = [ module.eks_blueprints_addons ]
-  metadata {
-    name = var.app_namespace
-  }
-}
-
 # https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment_v1
 resource "kubernetes_deployment_v1" "flask_app_deployment" {
-  depends_on = [kubernetes_namespace_v1.app_ns]
+  depends_on = [module.eks_blueprints_addons]
 
   metadata {
     name = "${var.app_name}-deployment"
@@ -99,23 +97,23 @@ resource "kubernetes_deployment_v1" "flask_app_deployment" {
             }
           }
 
-          liveness_probe {
-            http_get {
-              path = "/"
-              port = var.app_port
-            }
-            initial_delay_seconds = 30
-            period_seconds        = 10
-          }
+          # liveness_probe {
+          #   http_get {
+          #     path = "/"
+          #     port = var.app_port
+          #   }
+          #   initial_delay_seconds = 30
+          #   period_seconds        = 10
+          # }
 
-          readiness_probe {
-            http_get {
-              path = "/"
-              port = var.app_port
-            }
-            initial_delay_seconds = 5
-            period_seconds        = 5
-          }
+          # readiness_probe {
+          #   http_get {
+          #     path = "/"
+          #     port = var.app_port
+          #   }
+          #   initial_delay_seconds = 5
+          #   period_seconds        = 5
+          # }
         }
       }
     }

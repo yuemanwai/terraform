@@ -56,16 +56,16 @@ resource "aws_acm_certificate_validation" "web_cert_validation" {
 # https://developer.hashicorp.com/terraform/language/resources/terraform-data
 resource "terraform_data" "wait_for_alb_hostname" {
   # 等待 ALB 的 hostname 可用
-  input = kubernetes_ingress_v1.flask_app_ingress.status[0].load_balancer[0].ingress[0].hostname
+  input = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
 }
 
 
-resource "cloudflare_record" "app_cname_to_alb" {
+resource "cloudflare_dns_record" "app_cname_to_alb" {
   zone_id = var.cloudflare_zone_id
-  name    = var.app_domain_name # 你希望用哪個域名訪問 (例如 "www" 或 "@" 代表裸域名)
-  value   = kubernetes_ingress_v1.flask_app_ingress.status[0].load_balancer[0].ingress[0].hostname
+  name    = var.domain_name # 你希望用哪個域名訪問 (例如 "www" 或 "@" 代表裸域名)
+  content   = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
   type    = "CNAME"
-  ttl     = 300 # DNS 記錄的 TTL (生存時間)，單位為秒，例如 5 分鐘
+  ttl     = 1 # when proxied is true, 1 means "automatic TTL"
   proxied = true # 是否透過 Cloudflare 的 CDN/WAF 代理流量 (橙色雲朵)
                   # 建議設為 true 以利用 Cloudflare 的優勢，但在調試時可能設為 false
 

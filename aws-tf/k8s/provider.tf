@@ -27,6 +27,10 @@ terraform {
       source  = "hashicorp/time"
       version = ">= 0.9" 
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 5.7"
+    }
   }
 }
 
@@ -51,7 +55,7 @@ data "terraform_remote_state" "rds" {
 }
 
 data "aws_eks_cluster" "cluster" {
-  name = data.terraform_remote_state.vpc.outputs.cluster_name
+  name = data.terraform_remote_state.vpc_eks.outputs.cluster_name
 }
 
 data "aws_eks_cluster_auth" "eks" {
@@ -62,6 +66,10 @@ provider "aws" {
   region     = var.region
   access_key = var.aws_access_key_id
   secret_key = var.aws_secret_access_key
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
 
 provider "kubernetes" {
@@ -77,4 +85,3 @@ provider "helm" {
     token                  = data.aws_eks_cluster_auth.eks.token
   }
 }
-

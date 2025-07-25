@@ -22,14 +22,6 @@ variable "cloudflare_api_token" {
   default     = ""
 }
 
-# ================================================================================================================== #
-
-variable "cloudflare_api_token" {
-  description = "Cloudflare API token"
-  type        = string
-  default     = ""
-}
-
 variable "domain_name" {
   description = "The domain name for the Flask Ingress (e.g., example.com)."
   type        = string

@@ -1,5 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
+# ================================================================================================================== #
 
 variable "region" {
   description = "AWS region"
@@ -18,8 +17,6 @@ variable "aws_secret_access_key" {
   type        = string
   default     = ""
 }
-
-# ================================================================================================================== #
 
 variable "cloudflare_api_token" {
   description = "Cloudflare API token"
