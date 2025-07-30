@@ -1,7 +1,3 @@
-# output "lb_ip" {
-#   value = kubernetes_service.nginx.status.0.load_balancer.0.ingress.0.hostname
-# }
-
 output "alb_dns_name" {
   description = "The DNS name of the ALB created by the Ingress."
   # 僅在 ingress 資源有 status.loadBalancer.ingress 字段時才輸出
