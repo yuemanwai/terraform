@@ -14,10 +14,6 @@ cat <<EOL > ~/.aws/config
 [default]
 region = us-east-1
 output = json
-
-[profile my-profile]
-role_arn = YOUR_LABROLE_ARN
-source_profile = default
 EOL
 
 # 安裝 kubectl
@@ -28,16 +24,27 @@ kubectl version --client --output=yaml
 # 安裝 Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
+cat <<EOL > ./terraform_azure/terraform.tfvars
+appId    = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+password = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+EOL
+
 # 安裝 gcloud CLI (有步驟要手動)
 sudo apt-get update
 sudo apt-get install apt-transport-https ca-certificates gnupg curl
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg -y
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list -y
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 sudo apt-get update && sudo apt-get install google-cloud-cli
 gcloud init
 gcloud auth application-default login
+
+# 安裝 AWS IAM Authenticator
+curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/aws-iam-authenticator
+chmod +x ./aws-iam-authenticator
+sudo mv ./aws-iam-authenticator /usr/local/bin
 
 # 驗證安裝
 aws --version
 kubectl version
 az version
+aws-iam-authenticator help

@@ -15,6 +15,8 @@ crash.*.log
 # to change depending on the environment.
 *.tfvars
 *.tfvars.json
+*.tfstate.backup
+*.tfstate.backup.*
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
@@ -24,14 +26,31 @@ override.tf.json
 *_override.tf.json
 
 # Ignore transient lock info files created by terraform apply
-.terraform.tfstate.lock.info
+**/.terraform.tfstate.lock.info
+**/.terraform.lock.hcl
 
 # Include override files you do wish to add to version control using negated pattern
 # !example_override.tf
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
-# example: *tfplan*
+# example: 
+*tfplan*
 
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+~/.kube/*
+~/.aws/*
+~/.azure/*
+
+# certificates
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+*.jks
+*.p7b
+*.csr
+*.jceks
