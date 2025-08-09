@@ -61,4 +61,10 @@ variable "service_port" {
   type        = number
 }
 
+variable "GEMINI_API_KEY" {
+  description = "Gemini API key."
+  type        = string
+  default     = ""
+}
+
 

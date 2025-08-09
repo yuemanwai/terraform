@@ -85,6 +85,10 @@ resource "kubernetes_deployment_v1" "flask_app_deployment" {
             name  = "SQLALCHEMY_DATABASE_URI"
             value = data.terraform_remote_state.rds.outputs.db_url # 使用 RDS 的連接字符串
           }
+          env {
+            name  = "GEMINI_API_KEY"
+            value = var.GEMINI_API_KEY # 使用 RDS 的連接字符串
+          }
 
           resources {
             limits = {
