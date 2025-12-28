@@ -46,6 +46,18 @@ module "eks_blueprints_addons" {
 }
 # ================================================================================================================== #
 
+# Create Kubernetes Service Account (Bind Role)
+resource "kubernetes_service_account" "flask_sa" {
+  metadata {
+    name      = "webapp-sa"
+    namespace = var.app_namespace
+    annotations = {
+      "eks.amazonaws.com/role-arn" = data.terraform_remote_state.rds.outputs.irsa_rds_role_arn
+    }
+  }
+}
+
+
 # https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment_v1
 resource "kubernetes_deployment_v1" "flask_app_deployment" {
   depends_on = [module.eks_blueprints_addons]

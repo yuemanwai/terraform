@@ -19,3 +19,9 @@ output "db_url" {
     )
   sensitive = true
 }
+
+
+output "irsa_rds_role_arn" {
+  description = "IAM Role ARN for IRSA RDS SecretsManager access"
+  value       = module.irsa_rds_access.iam_role_arn
+}
