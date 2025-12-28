@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  terraform-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+      - ~/.aws:/home/vscode/.aws:cached
+      - ~/.kube:/home/vscode/.kube:cached
+      - ~/.config/gcloud:/home/vscode/.config/gcloud:cached
+    command: sleep infinity
+    user: vscode

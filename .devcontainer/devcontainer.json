@@ -1,17 +1,37 @@
 {
-  "name": "Terraform and AWS CLI Dev Container",
-  "image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu",
-  "features": {
-    "terraform": "latest"
-  },
+  "name": "Terraform Multi-Cloud Development",
+  "dockerFile": "Dockerfile",
+  "mounts": [
+    "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind,consistency=cached"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
         "hashicorp.terraform",
-        "github.copilot",
-        "mark-tucker.aws-cli-configure"
-      ]
+        "ms-vscode.vscode-json",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-azuretools.vscode-azureresourcegroups",
+        "amazonwebservices.aws-toolkit-vscode",
+        "googlecloudtools.cloudcode",
+        "github.copilot"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
     }
   },
-  "postStartCommand": "chmod +x setup.sh && ./setup.sh"
+  "forwardPorts": [8080],
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  }
 }
