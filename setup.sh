@@ -1,5 +1,25 @@
 #!/bin/bash
 
+# ======================================================
+# 此腳本已經改用 Dev Container 取代
+# 請使用 .devcontainer/ 目錄中的配置
+# 啟動 Dev Container：
+# 1. 在 VS Code 中按 Ctrl+Shift+P
+# 2. 選擇 "Dev Containers: Reopen in Container"
+# ======================================================
+
+echo "⚠️  此腳本已棄用，請使用 Dev Container"
+echo "啟動方式："
+echo "1. 在 VS Code 中按 Ctrl+Shift+P"
+echo "2. 選擇 'Dev Containers: Reopen in Container'"
+echo ""
+echo "容器啟動後執行認證："
+echo "- AWS: aws configure"
+echo "- Azure: az login"
+echo "- GCP: ./gcp-auth.sh"
+
+exit 1
+
 # 安裝 AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
 unzip -u awscliv2.zip
