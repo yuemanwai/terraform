@@ -87,6 +87,7 @@ resource "kubernetes_deployment_v1" "flask_app_deployment" {
       }
 
       spec {
+        service_account_name = kubernetes_service_account.flask_sa.metadata.0.name
         container {
           name  = var.app_name
           image = var.app_image
@@ -94,41 +95,58 @@ resource "kubernetes_deployment_v1" "flask_app_deployment" {
             container_port = var.app_port # Flask 應用監聽的端口
           }
           env {
-            name  = "SQLALCHEMY_DATABASE_URI"
-            value = data.terraform_remote_state.rds.outputs.db_url # 使用 RDS 的連接字符串
+            name  = "AWS_SECRET_NAME"
+            value = data.terraform_remote_state.rds.outputs.db_secret_arn
           }
           env {
-            name  = "GEMINI_API_KEY"
-            value = var.GEMINI_API_KEY # 使用 RDS 的連接字符串
+            name  = "AWS_REGION"
+            value = data.terraform_remote_state.vpc_eks.outputs.region
+          }
+          env {
+            name  = "DB_HOST"
+            value = data.terraform_remote_state.rds.outputs.db_instance_address
+          }
+          env {
+            name = "DB_NAME"
+            value = data.terraform_remote_state.rds.outputs.db_name
           }
 
+          # env {
+          #   name  = "GEMINI_API_KEY"
+          #   value = var.GEMINI_API_KEY # 使用 RDS 的連接字符串
+          # }
+
           resources {
-            limits = {
-              cpu    = "500m"
+            requests = {
+              cpu    = "0.1"
               memory = "512Mi"
             }
-            requests = {
-              cpu    = "250m"
-              memory = "128Mi"
+            limits = {
+              cpu    = "0.5"
+              memory = "1024Mi"
             }
           }
 
           # liveness_probe {
           #   http_get {
-          #     path = "/"
+          #     path = "/healthz"
           #     port = var.app_port
           #   }
-          #   initial_delay_seconds = 30
-          #   period_seconds        = 10
+          #   initial_delay_seconds = 90
+          #   period_seconds        = 30
+          #   timeout_seconds       = 5
+          #   failure_threshold     = 3
           # }
 
           # readiness_probe {
           #   http_get {
-          #     path = "/"
+          #     path = "/readyz"
           #     port = var.app_port
           #   }
-          #   initial_delay_seconds = 5
-          #   period_seconds        = 5
+          #   initial_delay_seconds = 45
+          #   period_seconds        = 15
+          #   timeout_seconds       = 3
+          #   failure_threshold     = 3
           # }
         }
       }
@@ -163,6 +181,7 @@ resource "kubernetes_service_v1" "flask_app_service" {
 
 resource "kubernetes_ingress_v1" "flask_app_ingress" {
   depends_on = [aws_acm_certificate.web_cert, kubernetes_service_v1.flask_app_service]
+  wait_for_load_balancer = true
 
   metadata {
     name      = "${var.app_name}-ingress"

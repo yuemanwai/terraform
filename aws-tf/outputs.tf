@@ -51,3 +51,8 @@ output "node_security_group_id" {
   value       = module.eks.node_security_group_id
 }
 
+# kubeconfig ================================================================================================================== #
+output "configure_kubectl" {
+  description = "Configure kubectl: run this command in your terminal"
+  value       = "aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)"
+}
