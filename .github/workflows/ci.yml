@@ -1,4 +1,4 @@
-name: AWS Terraform Security Scan
+name: AWS Terraform Security & Cost Analysis
 
 on: [push, pull_request]
 
@@ -100,3 +100,36 @@ jobs:
             /tmp/infracost.json
             infracost-report.html
           retention-days: 7
+
+  # ====================================================
+  # Job 3: Update Main Branch Cost to Dashboard
+  # ====================================================
+  infracost-main-update:
+    name: Update Infracost Dashboard
+    runs-on: ubuntu-latest
+    # 呢個 Job 只會在 push 去 main 時執行 (即係 Merge 後)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      # 1. 安裝 Infracost 並設定 API Key
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      # 2. 計算 main branch 嘅成本
+      - name: Run Infracost Breakdown
+        run: |
+          infracost breakdown --path aws-tf \
+                              --format json \
+                              --out-file infracost.json
+
+      # 3. Upload 去 Infracost Cloud Dashboard
+      - name: Upload to Infracost Cloud
+        run: |
+          infracost upload --path infracost.json
