@@ -34,3 +34,53 @@ jobs:
           # 上面 output 寫入 /mytf/aws_report.html，即係 root 嘅 aws_report.html
           path: aws_report.html
           retention-days: 7
+
+  cost-estimation:
+    name: Infracost Estimate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # ⚠️ 必須有呢個權限，佢先可以在 PR 留言
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 1. 安裝 Infracost 並設定 API Key
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      # 2. 跑計算 (指定 aws-tf folder)
+      - name: Run Infracost Breakdown
+        run: |
+          infracost breakdown --path aws-tf \
+                              --format json \
+                              --out-file infracost.json
+
+      # 3. 自動留言係 Pull Request (最型係呢步)
+      # behavior: update 意思係如果跑好多次，佢只會更新同一條留言，唔會洗版
+      - name: Post Infracost Comment
+        uses: infracost/actions/comment@v3
+        if: github.event_name == 'pull_request'
+        with:
+          path: infracost.json
+          behavior: update
+
+      # 4. 產生 HTML 報告 (方便你 FYP Cap 圖)
+      # 雖然上面的 json 已經夠，但 HTML 俾人睇更直觀
+      - name: Generate HTML Report
+        run: |
+          infracost output --path infracost.json --format html --out-file infracost-report.html
+
+      # 5. Upload 報價單做 Artifact
+      - name: Upload Cost Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: infracost-report
+          path: |
+            infracost.json
+            infracost-report.html
+          retention-days: 7
