@@ -54,3 +54,8 @@ terraform.rc
 *.p7b
 *.csr
 *.jceks
+
+.external_modules/*
+*.csv
+*result.*
+console

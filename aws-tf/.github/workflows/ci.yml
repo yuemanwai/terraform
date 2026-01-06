@@ -1,0 +1,36 @@
+name: AWS Terraform Security Scan
+
+on: [push, pull_request]
+
+jobs:
+  trivy-aws-scan:
+    name: Scan AWS Folder
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Trivy on /aws-tf folder
+        run: |
+          # 1. Mount 整個 Workspace 到 /mytf (確保 module path 正常)
+          # 2. 指令改為 config /mytf/aws-tf (只掃描呢個 subfolder)
+          docker run --rm \
+            -v ${{ github.workspace }}:/mytf \
+            ghcr.io/aquasecurity/trivy:latest config /mytf/aws-tf \
+            --format template \
+            --template "@contrib/html.tpl" \
+            --output /mytf/aws_report.html \
+            --exit-code 0
+
+      - name: Upload AWS Security Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aws-security-report
+          # 上面 output 寫入 /mytf/aws_report.html，即係 root 嘅 aws_report.html
+          path: aws_report.html
+          retention-days: 7
