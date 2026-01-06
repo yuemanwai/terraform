@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run Trivy on /aws-tf folder
         run: |
@@ -33,4 +33,70 @@ jobs:
           name: aws-security-report
           # 上面 output 寫入 /mytf/aws_report.html，即係 root 嘅 aws_report.html
           path: aws_report.html
+          retention-days: 7
+
+  cost-estimation:
+    name: Infracost Estimate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize')
+    permissions:
+      contents: read
+      pull-requests: write # ⚠️ 必須有呢個權限，佢先可以在 PR 留言
+
+    steps:
+      # 1. 安裝 Infracost 並設定 API Key
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      # 2. Checkout base branch (e.g. main/master)
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: '${{ github.event.pull_request.base.ref }}'
+
+      # 3. 計算 base branch 嘅成本 (做 baseline)
+      - name: Generate Infracost cost estimate baseline
+        run: |
+          infracost breakdown --path aws-tf \
+                              --format json \
+                              --out-file /tmp/infracost-base.json
+
+      # 4. Checkout PR branch
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      # 5. 計算 PR branch 同 base branch 嘅差異
+      - name: Generate Infracost diff
+        run: |
+          infracost diff --path aws-tf \
+                         --format json \
+                         --compare-to /tmp/infracost-base.json \
+                         --out-file /tmp/infracost.json
+
+      # 6. 自動留言係 Pull Request (用 CLI 而唔係 action)
+      # behavior: update 意思係如果跑好多次，佢只會更新同一條留言，唔會洗版
+      - name: Post Infracost comment
+        run: |
+          infracost comment github --path /tmp/infracost.json \
+                                   --repo $GITHUB_REPOSITORY \
+                                   --github-token ${{ github.token }} \
+                                   --pull-request ${{ github.event.pull_request.number }} \
+                                   --behavior update
+
+      # 7. 產生 HTML 報告 (方便你 FYP Cap 圖)
+      - name: Generate HTML Report
+        run: |
+          infracost output --path /tmp/infracost.json --format html --out-file infracost-report.html
+
+      # 8. Upload 報價單做 Artifact
+      - name: Upload Cost Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: infracost-report
+          path: |
+            /tmp/infracost.json
+            infracost-report.html
           retention-days: 7
