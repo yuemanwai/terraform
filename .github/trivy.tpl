@@ -40,12 +40,12 @@
 
   <div class="summary">
     <div class="card CRITICAL">
-      <h3>{{ .Results | len }}</h3>
+      <h3>{{ . | len }}</h3>
       <span>Targets</span>
     </div>
   </div>
 
-  {{ range .Results }}
+  {{ range . }}
   <div class="target-section">
     <div class="target-title">📂 {{ .Target }} ({{ .Type }})</div>
 
