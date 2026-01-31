@@ -2,97 +2,189 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>Trivy Security Report</title>
+  <title>Trivy Security Dashboard</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f4f6f9; color: #333; }
-    h1 { color: #2c3e50; text-align: center; }
-    .summary { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; }
-    .card { background: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; min-width: 100px; }
-    .card h3 { margin: 0; font-size: 2em; }
-    .card span { font-size: 0.9em; color: #777; }
-    .CRITICAL { color: #e74c3c; border-top: 4px solid #e74c3c; }
-    .HIGH { color: #e67e22; border-top: 4px solid #e67e22; }
-    .MEDIUM { color: #f1c40f; border-top: 4px solid #f1c40f; }
-    .LOW { color: #3498db; border-top: 4px solid #3498db; }
+    :root {
+      --bg-color: #f0f2f5;
+      --card-bg: #ffffff;
+      --text-color: #333;
+      --critical: #dc3545;
+      --high: #fd7e14;
+      --medium: #ffc107;
+      --low: #0d6efd;
+      --safe: #198754;
+    }
+    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 30px; background-color: var(--bg-color); color: var(--text-color); }
 
-    .target-section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .target-title { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    /* Header */
+    .header { text-align: center; margin-bottom: 40px; }
+    h1 { color: #2c3e50; margin: 0; font-size: 2.5em; }
+    p.subtitle { color: #666; margin-top: 10px; }
 
+    /* Dashboard Cards */
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+    .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; transition: transform 0.2s; border-bottom: 4px solid transparent; }
+    .card:hover { transform: translateY(-5px); }
+    .card h3 { margin: 0; font-size: 3em; font-weight: 800; }
+    .card span { font-size: 1em; color: #777; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Color Modifiers */
+    .card.critical { border-color: var(--critical); } .card.critical h3 { color: var(--critical); }
+    .card.high { border-color: var(--high); } .card.high h3 { color: var(--high); }
+    .card.medium { border-color: var(--medium); } .card.medium h3 { color: var(--medium); }
+    .card.low { border-color: var(--low); } .card.low h3 { color: var(--low); }
+    .card.total { border-color: #6c757d; } .card.total h3 { color: #2c3e50; }
+
+    /* Detailed Section */
+    .container { max-width: 1200px; margin: 0 auto; }
+    .target-section { background: var(--card-bg); padding: 25px; margin-bottom: 25px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .target-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; }
+    .target-title { font-size: 1.2em; font-weight: bold; color: #34495e; display: flex; align-items: center; gap: 10px; }
+    .target-type { font-size: 0.8em; background: #e9ecef; padding: 4px 8px; border-radius: 4px; color: #495057; }
+
+    /* Table */
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { background-color: #f8f9fa; text-align: left; padding: 12px; border-bottom: 2px solid #ddd; color: #555; }
-    td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
-    tr:hover { background-color: #fafafa; }
+    th { background-color: #f8f9fa; text-align: left; padding: 15px; border-bottom: 2px solid #dee2e6; color: #495057; font-size: 0.9em; text-transform: uppercase; }
+    td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 0.95em; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #f8f9fa; }
 
-    .badge { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.8em; }
-    .bg-CRITICAL { background-color: #e74c3c; }
-    .bg-HIGH { background-color: #e67e22; }
-    .bg-MEDIUM { background-color: #f1c40f; color: #333; }
-    .bg-LOW { background-color: #3498db; }
-    .bg-UNKNOWN { background-color: #95a5a6; }
+    /* Badges & Links */
+    .badge { padding: 6px 12px; border-radius: 20px; color: white; font-weight: bold; font-size: 0.8em; display: inline-block; min-width: 60px; text-align: center; }
+    .bg-CRITICAL { background-color: var(--critical); }
+    .bg-HIGH { background-color: var(--high); }
+    .bg-MEDIUM { background-color: var(--medium); color: #333; }
+    .bg-LOW { background-color: var(--low); }
 
-    .vuln-id { font-family: monospace; font-weight: bold; color: #2980b9; }
-    .links a { color: #3498db; text-decoration: none; font-size: 0.9em; }
-    .links a:hover { text-decoration: underline; }
+    .vuln-id { font-family: 'Consolas', monospace; color: #0d6efd; font-weight: bold; }
+    .links a { color: #0d6efd; text-decoration: none; font-weight: 500; font-size: 0.9em; border: 1px solid #0d6efd; padding: 4px 10px; border-radius: 4px; transition: all 0.2s; }
+    .links a:hover { background-color: #0d6efd; color: white; }
+
+    .safe-message { text-align: center; color: var(--safe); padding: 30px; font-size: 1.1em; font-weight: 500; }
   </style>
 </head>
 <body>
-  <h1>🛡️ Trivy Security Report</h1>
 
-  <div class="summary">
-    <div class="card CRITICAL">
-      <h3>{{ . | len }}</h3>
-      <span>Targets</span>
+  <div class="header">
+    <h1>🛡️ Security Scan Report</h1>
+    <p class="subtitle">Generated by Trivy via GitHub Actions</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="card total">
+      <h3 id="count-targets">0</h3>
+      <span>Scanned Modules</span>
+    </div>
+    <div class="card critical">
+      <h3 id="count-critical">0</h3>
+      <span>Critical</span>
+    </div>
+    <div class="card high">
+      <h3 id="count-high">0</h3>
+      <span>High</span>
+    </div>
+    <div class="card medium">
+      <h3 id="count-medium">0</h3>
+      <span>Medium</span>
+    </div>
+    <div class="card low">
+      <h3 id="count-low">0</h3>
+      <span>Low</span>
     </div>
   </div>
 
-  {{ range . }}
-  <div class="target-section">
-    <div class="target-title">📂 {{ .Target }} ({{ .Type }})</div>
+  <div class="container">
+    {{ range . }}
+    <div class="target-section">
+      <div class="target-header">
+        <div class="target-title">
+          <span>📂 {{ .Target }}</span>
+          <span class="target-type">{{ .Type }}</span>
+        </div>
+      </div>
 
-    {{ if (or .Vulnerabilities .Misconfigurations) }}
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 100px;">Severity</th>
-          <th style="width: 150px;">ID</th>
-          <th>Package / Resource</th>
-          <th>Title & Description</th>
-          <th style="width: 120px;">Fix Version</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{ range .Vulnerabilities }}
-        <tr>
-          <td><span class="badge bg-{{ .Severity }}">{{ .Severity }}</span></td>
-          <td class="vuln-id">{{ .VulnerabilityID }}</td>
-          <td>{{ .PkgName }}<br><small>{{ .InstalledVersion }}</small></td>
-          <td><b>{{ .Title }}</b><br>{{ .Description }}</td>
-          <td>{{ .FixedVersion }}</td>
-        </tr>
-        {{ end }}
+      {{ if (or .Vulnerabilities .Misconfigurations) }}
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 100px;">Severity</th>
+            <th style="width: 180px;">ID</th>
+            <th>Package / Resource</th>
+            <th>Description</th>
+            <th style="width: 140px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range .Vulnerabilities }}
+          <tr class="issue-row" data-severity="{{ .Severity }}">
+            <td><span class="badge bg-{{ .Severity }}">{{ .Severity }}</span></td>
+            <td class="vuln-id">{{ .VulnerabilityID }}</td>
+            <td>{{ .PkgName }}<br><small style="color:#888">{{ .InstalledVersion }}</small></td>
+            <td><b>{{ .Title }}</b><br><span style="color:#555; font-size:0.9em">{{ .Description }}</span></td>
+            <td><div class="links">{{ if .PrimaryURL }}<a href="{{ .PrimaryURL }}" target="_blank">Fix Info</a>{{ else }}-{{ end }}</div></td>
+          </tr>
+          {{ end }}
 
-        {{ range .Misconfigurations }}
-        <tr>
-          <td><span class="badge bg-{{ .Severity }}">{{ .Severity }}</span></td>
-          <td class="vuln-id">{{ .ID }}</td>
-          <td>{{ .Title }}</td>
-          <td>
-            <b>{{ .Message }}</b><br>
-            <div class="links">
-              <a href="{{ .PrimaryURL }}" target="_blank">View Remediation ↗</a>
-            </div>
-          </td>
-          <td>-</td>
-        </tr>
-        {{ end }}
-      </tbody>
-    </table>
-    {{ else }}
-      <p style="color: #27ae60; text-align: center; padding: 20px;">✅ No Vulnerabilities found!</p>
+          {{ range .Misconfigurations }}
+          <tr class="issue-row" data-severity="{{ .Severity }}">
+            <td><span class="badge bg-{{ .Severity }}">{{ .Severity }}</span></td>
+            <td class="vuln-id">{{ .ID }}</td>
+            <td>{{ .Title }}</td>
+            <td><b>{{ .Message }}</b></td>
+            <td><div class="links"><a href="{{ .PrimaryURL }}" target="_blank">Remediation</a></div></td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+      {{ else }}
+        <div class="safe-message">
+          ✅ No security issues found in this module.
+        </div>
+      {{ end }}
+    </div>
     {{ end }}
   </div>
-  {{ end }}
 
-  <p style="text-align: center; color: #999; font-size: 0.8em;">Generated by Trivy via GitHub Actions</p>
+  <script>
+    // Simple logic to count the rows and update dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. Count Targets (Scanned Modules)
+      const targets = document.querySelectorAll('.target-section');
+      document.getElementById('count-targets').textContent = targets.length;
+
+      // 2. Count Severities
+      let critical = 0, high = 0, medium = 0, low = 0;
+
+      const rows = document.querySelectorAll('.issue-row');
+      rows.forEach(row => {
+        const severity = row.getAttribute('data-severity');
+        if (severity === 'CRITICAL') critical++;
+        else if (severity === 'HIGH') high++;
+        else if (severity === 'MEDIUM') medium++;
+        else if (severity === 'LOW') low++;
+      });
+
+      // 3. Update UI with Animation
+      function animateValue(id, start, end, duration) {
+        if (start === end) return;
+        const obj = document.getElementById(id);
+        let startTimestamp = null;
+        const step = (timestamp) => {
+          if (!startTimestamp) startTimestamp = timestamp;
+          const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+          obj.innerHTML = Math.floor(progress * (end - start) + start);
+          if (progress < 1) {
+            window.requestAnimationFrame(step);
+          }
+        };
+        window.requestAnimationFrame(step);
+      }
+
+      animateValue("count-critical", 0, critical, 1000);
+      animateValue("count-high", 0, high, 1000);
+      animateValue("count-medium", 0, medium, 1000);
+      animateValue("count-low", 0, low, 1000);
+    });
+  </script>
 </body>
 </html>
