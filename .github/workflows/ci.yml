@@ -14,17 +14,14 @@ jobs:
   trivy-security-scan:
     name: Security Scan (Trivy)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # # Step 0: 下載 Template 避免 Error
-      # - name: Download Trivy HTML Template
-      #   run: |
-      #     curl -sL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o html.tpl
+      # Step 0: 下載 Template (如你所願，讀本地 .github/trivy.tpl)
+      # 確保你 repo 入面真係有呢個 file，否則這步會 fail
+      # 如果未有，可以暫時 comment 咗 template 相關行數
 
-      # Step 1: 生成 HTML 報告 (供下載)
       - name: Generate Trivy HTML Report
         uses: aquasecurity/trivy-action@master
         with:
@@ -32,12 +29,11 @@ jobs:
           scan-ref: "./aws-tf"
           scanners: "vuln,secret,misconfig"
           format: "template"
-          template: "@.github/trivy.tpl" # <--- 改咗這裡！直接讀本地檔案
+          template: "@.github/trivy.tpl"
           output: "aws_report.html"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           exit-code: "0"
 
-      # Step 2: Console 顯示重點 Table (High/Critical)
       - name: Show Security Risks in Console
         uses: aquasecurity/trivy-action@master
         with:
@@ -45,10 +41,9 @@ jobs:
           scan-ref: "./aws-tf"
           scanners: "vuln,secret,misconfig"
           format: "table"
-          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          severity: "HIGH,CRITICAL"
           exit-code: "0"
 
-      # Step 3: 上傳 Artifact
       - name: Upload Security Artifact
         uses: actions/upload-artifact@v4
         if: always()
@@ -58,11 +53,11 @@ jobs:
           retention-days: 7
 
   # ====================================================
-  # Job 2: Cost Estimation (Infracost)
-  # 只在 Pull Request 觸發 (因為需要對比前後差異)
+  # Job 2: Cost Estimation (Pull Request 專用)
+  # 邏輯：有對比 (Diff)，有留言 (Comment)
   # ====================================================
-  cost-estimation:
-    name: Cost Estimation
+  cost-estimation-pr:
+    name: Cost Estimation (PR Diff)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
@@ -73,7 +68,7 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           currency: USD
 
-      # 計算 Base Branch (舊 Code) 價錢
+      # 計算 Base (舊)
       - name: Checkout base branch
         uses: actions/checkout@v4
         with:
@@ -85,7 +80,7 @@ jobs:
                               --format json \
                               --out-file /tmp/infracost-base.json
 
-      # 計算 PR Branch (新 Code) 價錢
+      # 計算 PR (新)
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
@@ -96,12 +91,10 @@ jobs:
                          --compare-to /tmp/infracost-base.json \
                          --out-file /tmp/infracost.json
 
-      # Console 顯示價錢表 (保險線)
+      # Console 顯示 + PR 留言 + HTML Report
       - name: Show Cost Table in Console
-        run: |
-          infracost output --path /tmp/infracost.json --format table
+        run: infracost output --path /tmp/infracost.json --format table
 
-      # PR 留言
       - name: Post Infracost Comment
         run: |
           infracost comment github --path /tmp/infracost.json \
@@ -110,51 +103,66 @@ jobs:
                                    --pull-request ${{ github.event.pull_request.number }} \
                                    --behavior update
 
-      # 生成 HTML 報告
       - name: Generate Cost HTML Report
-        run: |
-          infracost output --path /tmp/infracost.json --format html --out-file infracost-report.html
+        run: infracost output --path /tmp/infracost.json --format html --out-file infracost-report.html
 
-      # 上傳 Artifact
       - name: Upload Cost Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: infracost-report
+          name: infracost-report-pr
           path: |
             infracost-report.html
             /tmp/infracost.json
-          retention-days: 7
 
   # ====================================================
-  # Job 3: Update Main Branch Cost to Dashboard
+  # Job 3: Main Branch Cost Analysis (Push Main 專用)
+  # 邏輯：只計總數 (Total)，無 Diff，但要出 Report
   # ====================================================
-  infracost-main-update:
-    name: Update Infracost Dashboard
+  cost-estimation-main:
+    name: Cost Analysis (Main Total)
     runs-on: ubuntu-latest
-    # 呢個 Job 只會在 push 去 main 時執行 (即係 Merge 後)
+    # 當 Push 去 Main 時執行
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: read
 
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
 
-      # 1. 安裝 Infracost 並設定 API Key
       - name: Setup Infracost
         uses: infracost/actions/setup@v3
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+          currency: USD
 
-      # 2. 計算 main branch 嘅成本
+      # 1. 直接計算總價 (Breakdown)
       - name: Run Infracost Breakdown
         run: |
           infracost breakdown --path aws-tf \
                               --format json \
                               --out-file infracost.json
 
-      # 3. Upload 去 Infracost Cloud Dashboard
-      - name: Upload to Infracost Cloud
+      # 2. 顯示在 Console (這就是你想要的！Push Main 都有得睇)
+      - name: Show Cost Table in Console
         run: |
-          infracost upload --path infracost.json
+          infracost output --path infracost.json --format table
+
+      # 3. 生成 HTML Report (即使不上 Cloud Dashboard 都有得下載)
+      - name: Generate HTML Report
+        run: |
+          infracost output --path infracost.json --format html --out-file infracost-main-report.html
+
+      # 4. Upload Artifact
+      - name: Upload Cost Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: infracost-report-main
+          path: |
+            infracost-main-report.html
+            infracost.json
+
+      # 5. (可選) 繼續 Upload 去 Cloud Dashboard
+      # 如果 Trial 過期，這步可能會 Fail，你可以隨時 Comment 佢
+      - name: Upload to Infracost Cloud
+        run: infracost upload --path infracost.json
+        continue-on-error: true # 就算 Upload 失敗 (例如過期)，都唔好整死個 CI
