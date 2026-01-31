@@ -24,9 +24,9 @@ resource "cloudflare_dns_record" "acm_validation" {
   for_each = {
     for dvo in tolist(aws_acm_certificate.web_cert.domain_validation_options) :
     dvo.domain_name => {
-      name   = dvo.resource_record_name
-      type   = dvo.resource_record_type       #  "CNAME"
-      value  = dvo.resource_record_value      #  xxx.acm-validations.aws.
+      name  = dvo.resource_record_name
+      type  = dvo.resource_record_type  #  "CNAME"
+      value = dvo.resource_record_value #  xxx.acm-validations.aws.
     }
   }
 
@@ -40,13 +40,13 @@ resource "cloudflare_dns_record" "acm_validation" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation
 resource "aws_acm_certificate_validation" "web_cert_validation" {
-  certificate_arn         = aws_acm_certificate.web_cert.arn
+  certificate_arn = aws_acm_certificate.web_cert.arn
   validation_record_fqdns = [for record in cloudflare_dns_record.acm_validation :
     "${record.name}"
   ]
   depends_on = [cloudflare_dns_record.acm_validation]
 }
-# Do not append .${data.cloudflare_zone.main.name}. after record.name, it will cause errors. 
+# Do not append .${data.cloudflare_zone.main.name}. after record.name, it will cause errors.
 # Many people on StackOverflow have encountered this issue.
 
 
@@ -62,8 +62,8 @@ resource "terraform_data" "wait_for_alb_hostname" {
 
 resource "cloudflare_dns_record" "app_cname_to_alb" {
   zone_id = var.cloudflare_zone_id
-  name    = var.domain_name 
-  content   = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
+  name    = var.domain_name
+  content = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
   type    = "CNAME"
   ttl     = 1 # when proxied is true, 1 means "automatic TTL"
   # Enable Cloudflare proxy (orange cloud) to leverage CDN features.
@@ -72,4 +72,3 @@ resource "cloudflare_dns_record" "app_cname_to_alb" {
 
   depends_on = [terraform_data.wait_for_alb_hostname]
 }
-

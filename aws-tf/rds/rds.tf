@@ -10,9 +10,9 @@ resource "aws_security_group" "rds_sg" {
 
   ingress {
     description     = "Allow EKS nodes to access RDS"
-    from_port   = var.db_port
-    to_port     = var.db_port
-    protocol    = "tcp"
+    from_port       = var.db_port
+    to_port         = var.db_port
+    protocol        = "tcp"
     security_groups = [data.terraform_remote_state.vpc_eks.outputs.node_security_group_id]
   }
 
@@ -44,7 +44,7 @@ module "db" {
   port     = var.db_port
 
   major_engine_version = "16"
-  family = "postgres16"
+  family               = "postgres16"
 
 
   # DB subnet group
@@ -52,7 +52,7 @@ module "db" {
     aws_security_group.rds_sg.id,
   ]
   create_db_subnet_group = true
-  subnet_ids             =  data.terraform_remote_state.vpc_eks.outputs.private_subnet_ids
+  subnet_ids             = data.terraform_remote_state.vpc_eks.outputs.private_subnet_ids
 
   # Database Deletion Protection
   deletion_protection = false
@@ -87,9 +87,9 @@ data "aws_iam_policy_document" "rds_secrets_policy" {
 }
 
 resource "aws_iam_policy" "rds_secrets" {
-  name   = "allow-read-db-secret"
+  name        = "allow-read-db-secret"
   description = "Allow reading DB secret from Secrets Manager"
-  policy = data.aws_iam_policy_document.rds_secrets_policy.json
+  policy      = data.aws_iam_policy_document.rds_secrets_policy.json
 }
 
 module "irsa_rds_access" {
@@ -102,4 +102,3 @@ module "irsa_rds_access" {
   role_policy_arns              = [aws_iam_policy.rds_secrets.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:default:webapp-sa"]
 }
-

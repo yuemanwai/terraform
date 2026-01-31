@@ -21,11 +21,11 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.6" 
+      version = ">= 3.6"
     }
     time = {
       source  = "hashicorp/time"
-      version = ">= 0.9" 
+      version = ">= 0.9"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"

@@ -72,7 +72,7 @@ resource "kubernetes_service" "counting" {
   }
 }
 
-# EKS resources 
+# EKS resources
 
 data "terraform_remote_state" "eks" {
   backend = "local"

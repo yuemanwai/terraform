@@ -51,7 +51,7 @@ resource "google_container_cluster" "default" {
 
   deletion_protection = false
 
-  // Use legacy ABAC until these issues are resolved: 
+  // Use legacy ABAC until these issues are resolved:
   //   https://github.com/mcuadros/terraform-provider-helm/issues/56
   //   https://github.com/terraform-providers/terraform-provider-kubernetes/pull/73
   enable_legacy_abac = true

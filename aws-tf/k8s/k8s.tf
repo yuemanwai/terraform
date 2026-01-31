@@ -9,7 +9,7 @@
 
 # https://registry.terraform.io/modules/aws-ia/eks-blueprints-addons/aws/latest
 module "eks_blueprints_addons" {
-  source = "aws-ia/eks-blueprints-addons/aws"
+  source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.22.0" #ensure to update this to the latest/desired version
 
   cluster_name      = data.terraform_remote_state.vpc_eks.outputs.cluster_name
@@ -63,7 +63,7 @@ resource "kubernetes_deployment_v1" "flask_app_deployment" {
   depends_on = [module.eks_blueprints_addons]
 
   metadata {
-    name = "${var.app_name}-deployment"
+    name      = "${var.app_name}-deployment"
     namespace = var.app_namespace
     labels = {
       app = var.app_name
@@ -107,7 +107,7 @@ resource "kubernetes_deployment_v1" "flask_app_deployment" {
             value = data.terraform_remote_state.rds.outputs.db_instance_address
           }
           env {
-            name = "DB_NAME"
+            name  = "DB_NAME"
             value = data.terraform_remote_state.rds.outputs.db_name
           }
 
@@ -170,8 +170,8 @@ resource "kubernetes_service_v1" "flask_app_service" {
     }
     port {
       protocol    = "TCP"
-      port        = var.service_port    # Service 暴露給 ALB 的端口 (80)
-      target_port = var.app_port # 映射到 Pod 內部 Flask 應用監聽的端口 (5000)
+      port        = var.service_port # Service 暴露給 ALB 的端口 (80)
+      target_port = var.app_port     # 映射到 Pod 內部 Flask 應用監聽的端口 (5000)
     }
     type = "ClusterIP" # 內部服務類型
   }
@@ -180,7 +180,7 @@ resource "kubernetes_service_v1" "flask_app_service" {
 }
 
 resource "kubernetes_ingress_v1" "flask_app_ingress" {
-  depends_on = [aws_acm_certificate.web_cert, kubernetes_service_v1.flask_app_service]
+  depends_on             = [aws_acm_certificate.web_cert, kubernetes_service_v1.flask_app_service]
   wait_for_load_balancer = true
 
   metadata {
@@ -190,16 +190,16 @@ resource "kubernetes_ingress_v1" "flask_app_ingress" {
       app = var.app_name
     }
     annotations = {
-      "kubernetes.io/ingress.class"                         = "alb"
-      "alb.ingress.kubernetes.io/scheme"                    = "internet-facing"
-      "alb.ingress.kubernetes.io/listen-ports"              = jsonencode([{"HTTP" : 80}, {"HTTPS" : 443}])
-      "alb.ingress.kubernetes.io/ssl-redirect"              = "443"
-      "alb.ingress.kubernetes.io/backend-protocol"          = "HTTP"
-      "alb.ingress.kubernetes.io/healthcheck-path"          = "/"
-      "alb.ingress.kubernetes.io/success-codes"             = "200-399"
+      "kubernetes.io/ingress.class"                                   = "alb"
+      "alb.ingress.kubernetes.io/scheme"                              = "internet-facing"
+      "alb.ingress.kubernetes.io/listen-ports"                        = jsonencode([{ "HTTP" : 80 }, { "HTTPS" : 443 }])
+      "alb.ingress.kubernetes.io/ssl-redirect"                        = "443"
+      "alb.ingress.kubernetes.io/backend-protocol"                    = "HTTP"
+      "alb.ingress.kubernetes.io/healthcheck-path"                    = "/"
+      "alb.ingress.kubernetes.io/success-codes"                       = "200-399"
       "alb.ingress.kubernetes.io/manage-backend-security-group-rules" = "true"
-      "alb.ingress.kubernetes.io/certificate-arn"           = aws_acm_certificate.web_cert.arn # 使用 ACM 證書 ARN
-      "alb.ingress.kubernetes.io/target-type"               = "ip" # EKS Fargate 或直接到 Pod IP
+      "alb.ingress.kubernetes.io/certificate-arn"                     = aws_acm_certificate.web_cert.arn # 使用 ACM 證書 ARN
+      "alb.ingress.kubernetes.io/target-type"                         = "ip"                             # EKS Fargate 或直接到 Pod IP
     }
   }
   spec {
@@ -207,7 +207,7 @@ resource "kubernetes_ingress_v1" "flask_app_ingress" {
       host = var.domain_name
       http {
         path {
-          path     = "/"
+          path      = "/"
           path_type = "Prefix"
           backend {
             service {
@@ -222,9 +222,9 @@ resource "kubernetes_ingress_v1" "flask_app_ingress" {
     }
     # TLS 配置，讓 ALB 知道要為哪個 Host 處理 SSL/TLS
     tls {
-      hosts        = [var.domain_name]
+      hosts = [var.domain_name]
       # 這裡不需要 secretName，因為 ALB Ingress Controller 會直接使用 certificate-arn
-      # secret_name = "" 
+      # secret_name = ""
     }
   }
 }

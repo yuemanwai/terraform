@@ -26,4 +26,3 @@ meshGateway:
 ui:
   enabled: true
   replicas: 1
-

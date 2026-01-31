@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x 
+set -x
 set -e
 
 URL="http://$(terraform output load-balancer-ip)"

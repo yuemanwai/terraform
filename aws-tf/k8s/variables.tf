@@ -66,5 +66,3 @@ variable "GEMINI_API_KEY" {
   type        = string
   default     = ""
 }
-
-
