@@ -41,7 +41,7 @@ jobs:
           scan-ref: "./aws-tf"
           scanners: "vuln,secret,misconfig"
           format: "table"
-          severity: "HIGH,CRITICAL"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           exit-code: "0"
 
       - name: Upload Security Artifact
@@ -50,7 +50,7 @@ jobs:
         with:
           name: aws-security-report
           path: aws_report.html
-          retention-days: 7
+          retention-days: 30
 
   # ====================================================
   # Job 2: Cost Estimation (Pull Request 專用)
@@ -114,6 +114,7 @@ jobs:
           path: |
             infracost-report.html
             /tmp/infracost.json
+          retention-days: 30
 
   # ====================================================
   # Job 3: Main Branch Cost Analysis (Push Main 專用)
@@ -160,6 +161,7 @@ jobs:
           path: |
             infracost-main-report.html
             infracost.json
+          retention-days: 30
 
       # 5. (可選) 繼續 Upload 去 Cloud Dashboard
       # 如果 Trial 過期，這步可能會 Fail，你可以隨時 Comment 佢
