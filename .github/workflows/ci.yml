@@ -19,10 +19,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 0: 下載 Template 避免 Error
-      - name: Download Trivy HTML Template
-        run: |
-          curl -sL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o html.tpl
+      # # Step 0: 下載 Template 避免 Error
+      # - name: Download Trivy HTML Template
+      #   run: |
+      #     curl -sL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o html.tpl
 
       # Step 1: 生成 HTML 報告 (供下載)
       - name: Generate Trivy HTML Report
@@ -32,7 +32,7 @@ jobs:
           scan-ref: "./aws-tf"
           scanners: "vuln,secret,misconfig"
           format: "template"
-          template: "@html.tpl"
+          template: "@.github/trivy.tpl" # <--- 改咗這裡！直接讀本地檔案
           output: "aws_report.html"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           exit-code: "0"
