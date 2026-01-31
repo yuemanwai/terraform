@@ -1,0 +1,37 @@
+repos:
+  # ----------------------------------------------------
+  # 1. 全局檢查 (Global) - 呢啲建議檢查晒成個 Repo
+  # ----------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+      # Gitleaks 唔好限制 folder，因為 Azure 漏 Key 都會死人
+
+  # ----------------------------------------------------
+  # 2. AWS 專屬檢查 (Scoped) - 只針對 aws-tf 做野
+  # ----------------------------------------------------
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.88.0
+    hooks:
+      # 排版
+      - id: terraform_fmt
+        files: ^aws-tf/ # <--- 關鍵！只有 aws-tf 裡面的變動會觸發
+
+      # 文檔
+      - id: terraform_docs
+        files: ^aws-tf/ # <--- 關鍵！
+        args:
+          - --args=--lockfile=false
+
+      # 邏輯檢查
+      # - id: tflint
+      #   files: ^aws-tf/ # <--- 關鍵！
