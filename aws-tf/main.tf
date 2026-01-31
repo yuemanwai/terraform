@@ -48,7 +48,8 @@ module "eks" {
   cluster_name    = local.cluster_name
   cluster_version = "1.29"
 
-  cluster_endpoint_public_access           = true
+  cluster_endpoint_public_access           = false
+  cluster_endpoint_public_access_cidrs     = ["203.218.195.24/32"]
   enable_cluster_creator_admin_permissions = true
 
   # cluster_addons = {
@@ -69,11 +70,11 @@ module "eks" {
     one = {
       name = "node-group-1"
 
-      instance_types = ["t3.small"]
+      instance_types = ["t3.medium"]
 
       min_size     = 1
-      max_size     = 3
-      desired_size = 2
+      max_size     = 2
+      desired_size = 1
     }
 
   }
