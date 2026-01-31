@@ -30,6 +30,7 @@ jobs:
         with:
           scan-type: "fs"
           scan-ref: "./aws-tf"
+          scanners: "vuln,secret,misconfig"
           format: "template"
           template: "@html.tpl"
           output: "aws_report.html"
@@ -42,6 +43,7 @@ jobs:
         with:
           scan-type: "fs"
           scan-ref: "./aws-tf"
+          scanners: "vuln,secret,misconfig"
           format: "table"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           exit-code: "0"
