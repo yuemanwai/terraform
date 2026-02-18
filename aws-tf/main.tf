@@ -7,7 +7,8 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "education-eks-${random_string.suffix.result}"
+  cluster_name = "demo-eks-${random_string.suffix.result}"
+  vpc_name     = "demo-vpc-${random_string.suffix.result}"
 }
 
 resource "random_string" "suffix" {
@@ -19,24 +20,26 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.8.1"
 
-  name = "education-vpc"
+  name = local.vpc_name
 
   cidr = "10.0.0.0/16"
   azs  = slice(data.aws_availability_zones.available.names, 0, 2)
 
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24"]
+  private_subnets = ["10.0.0.0/24", "10.0.1.0/24"]
+  public_subnets  = ["10.0.2.0/24", "10.0.3.0/24"]
 
   enable_nat_gateway   = true
   single_nat_gateway   = true
   enable_dns_hostnames = true
 
   public_subnet_tags = {
-    "kubernetes.io/role/elb" = 1
+    "kubernetes.io/role/elb"                      = 1
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb" = 1
+    "kubernetes.io/role/internal-elb"             = 1
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
   }
 
 }
@@ -46,7 +49,7 @@ module "eks" {
   version = "20.8.5"
 
   cluster_name    = local.cluster_name
-  cluster_version = "1.29"
+  cluster_version = "1.33"
 
   cluster_endpoint_public_access           = false
   cluster_endpoint_public_access_cidrs     = ["203.218.195.24/32"]
@@ -62,7 +65,7 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   eks_managed_node_group_defaults = {
-    ami_type = "AL2_x86_64"
+    ami_type = "AL2023_x86_64_STANDARD"
 
   }
 
@@ -70,16 +73,35 @@ module "eks" {
     one = {
       name = "node-group-1"
 
-      instance_types = ["t3.medium"]
+      instance_types = ["t3.medium", "t3a.medium"]
+      capacity_type  = "SPOT"
 
       min_size     = 1
       max_size     = 2
       desired_size = 1
+
     }
 
+    tags = {
+      Name        = local.cluster_name
+      Terraform   = "true"
+      Environment = "demo" # 識別環境
+      Owner       = "me"   # 識別邊個負責比錢/維護
+    }
   }
 }
 
+
+####################################################################################
+###  Null Resource to update the kubeconfig file
+####################################################################################
+resource "null_resource" "update_kubeconfig" {
+  provisioner "local-exec" {
+    command = "aws eks --region ${var.region} update-kubeconfig --name ${local.cluster_name}"
+  }
+
+  depends_on = [module.eks]
+}
 
 # # https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/
 # data "aws_iam_policy" "ebs_csi_policy" {

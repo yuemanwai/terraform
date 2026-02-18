@@ -28,7 +28,7 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
-
+# https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest
 module "db" {
   source = "terraform-aws-modules/rds/aws"
 
@@ -60,6 +60,8 @@ module "db" {
 
   tags = {
     Environment = "demo"
+    Terraform   = "true"
+    Owner       = "me"
   }
 }
 

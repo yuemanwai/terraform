@@ -7,6 +7,9 @@ resource "aws_acm_certificate" "web_cert" {
   domain_name       = var.domain_name
   validation_method = "DNS"
 
+  # 如果你想這張證書包埋 subdomains (e.g., *.fyp.example.com)
+  subject_alternative_names = ["*.${var.domain_name}"]
+
   lifecycle {
     create_before_destroy = true
   }
@@ -54,21 +57,21 @@ resource "aws_acm_certificate_validation" "web_cert_validation" {
 # ================================================================================================================== #
 
 # https://developer.hashicorp.com/terraform/language/resources/terraform-data
-resource "terraform_data" "wait_for_alb_hostname" {
-  # Wait for ALB hostname to be available
-  input = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
-}
+# resource "terraform_data" "wait_for_alb_hostname" {
+#   # Wait for ALB hostname to be available
+#   input = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
+# }
 
 
-resource "cloudflare_dns_record" "app_cname_to_alb" {
-  zone_id = var.cloudflare_zone_id
-  name    = var.domain_name
-  content = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
-  type    = "CNAME"
-  ttl     = 1 # when proxied is true, 1 means "automatic TTL"
-  # Enable Cloudflare proxy (orange cloud) to leverage CDN features.
-  # Set to false during debugging if needed.
-  proxied = true
+# resource "cloudflare_dns_record" "app_cname_to_alb" {
+#   zone_id = var.cloudflare_zone_id
+#   name    = var.domain_name
+#   content = kubernetes_ingress_v1.flask_app_ingress.status.0.load_balancer.0.ingress.0.hostname
+#   type    = "CNAME"
+#   ttl     = 1 # when proxied is true, 1 means "automatic TTL"
+#   # Enable Cloudflare proxy (orange cloud) to leverage CDN features.
+#   # Set to false during debugging if needed.
+#   proxied = true
 
-  depends_on = [terraform_data.wait_for_alb_hostname]
-}
+#   depends_on = [terraform_data.wait_for_alb_hostname]
+# }
