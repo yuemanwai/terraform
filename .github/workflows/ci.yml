@@ -85,6 +85,7 @@ jobs:
       - name: Generate Baseline Cost
         run: |
           infracost breakdown --path aws-tf \
+                              --show-skipped \
                               --format json \
                               --out-file /tmp/infracost-base.json
 
@@ -95,6 +96,7 @@ jobs:
       - name: Generate Cost Diff
         run: |
           infracost diff --path aws-tf \
+                         --show-skipped \
                          --format json \
                          --compare-to /tmp/infracost-base.json \
                          --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
@@ -152,6 +154,7 @@ jobs:
       - name: Run Infracost Breakdown
         run: |
           infracost breakdown --path aws-tf \
+                              --show-skipped \
                               --format json \
                               --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
 
