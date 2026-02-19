@@ -85,6 +85,7 @@ jobs:
       - name: Generate Baseline Cost
         run: |
           infracost breakdown --path aws-tf \
+                              --show-skipped \
                               --format json \
                               --out-file /tmp/infracost-base.json
 
@@ -95,24 +96,25 @@ jobs:
       - name: Generate Cost Diff
         run: |
           infracost diff --path aws-tf \
+                         --show-skipped \
                          --format json \
                          --compare-to /tmp/infracost-base.json \
-                         --out-file /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
+                         --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
 
       # Console 顯示 + PR 留言 + HTML Report
       - name: Show Cost Table in Console
-        run: infracost output --path /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format table
+        run: infracost output --path infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format table
 
       - name: Post Infracost Comment
         run: |
-          infracost comment github --path /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json \
+          infracost comment github --path infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json \
                                    --repo $GITHUB_REPOSITORY \
                                    --github-token ${{ github.token }} \
                                    --pull-request ${{ github.event.pull_request.number }} \
                                    --behavior update
 
       - name: Generate Cost HTML Report
-        run: infracost output --path /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format html --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
+        run: infracost output --path infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format html --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
 
       - name: Upload Cost Report
         uses: actions/upload-artifact@v4
@@ -121,7 +123,7 @@ jobs:
           name: infracost-report-pr (${{ steps.pr_report_date.outputs.value }})
           path: |
             infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
-            /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
+            infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
           retention-days: 60
 
   # ====================================================
@@ -152,6 +154,7 @@ jobs:
       - name: Run Infracost Breakdown
         run: |
           infracost breakdown --path aws-tf \
+                              --show-skipped \
                               --format json \
                               --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
 
