@@ -22,6 +22,10 @@ jobs:
       # 確保你 repo 入面真係有呢個 file，否則這步會 fail
       # 如果未有，可以暫時 comment 咗 template 相關行數
 
+      - name: Set Security Report Date
+        id: security_report_date
+        run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
+
       - name: Generate Trivy HTML Report
         uses: aquasecurity/trivy-action@master
         with:
@@ -30,7 +34,7 @@ jobs:
           scanners: "vuln,secret,misconfig"
           format: "template"
           template: "@.github/trivy.tpl"
-          output: "aws_report.html"
+          output: "aws-security-report-${{ steps.security_report_date.outputs.value }}.html"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           exit-code: "0"
 
@@ -48,9 +52,9 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: aws-security-report
-          path: aws_report.html
-          retention-days: 30
+          name: aws-security-report (${{ steps.security_report_date.outputs.value }})
+          path: aws-security-report-${{ steps.security_report_date.outputs.value }}.html
+          retention-days: 60
 
   # ====================================================
   # Job 2: Cost Estimation (Pull Request 專用)
@@ -67,6 +71,10 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           currency: USD
+
+      - name: Set PR Cost Report Date
+        id: pr_report_date
+        run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
 
       # 計算 Base (舊)
       - name: Checkout base branch
@@ -89,32 +97,32 @@ jobs:
           infracost diff --path aws-tf \
                          --format json \
                          --compare-to /tmp/infracost-base.json \
-                         --out-file /tmp/infracost.json
+                         --out-file /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
 
       # Console 顯示 + PR 留言 + HTML Report
       - name: Show Cost Table in Console
-        run: infracost output --path /tmp/infracost.json --format table
+        run: infracost output --path /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format table
 
       - name: Post Infracost Comment
         run: |
-          infracost comment github --path /tmp/infracost.json \
+          infracost comment github --path /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json \
                                    --repo $GITHUB_REPOSITORY \
                                    --github-token ${{ github.token }} \
                                    --pull-request ${{ github.event.pull_request.number }} \
                                    --behavior update
 
       - name: Generate Cost HTML Report
-        run: infracost output --path /tmp/infracost.json --format html --out-file infracost-report.html
+        run: infracost output --path /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format html --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
 
       - name: Upload Cost Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: infracost-report-pr
+          name: infracost-report-pr (${{ steps.pr_report_date.outputs.value }})
           path: |
-            infracost-report.html
-            /tmp/infracost.json
-          retention-days: 30
+            infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
+            /tmp/infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
+          retention-days: 60
 
   # ====================================================
   # Job 3: Main Branch Cost Analysis (Push Main 專用)
@@ -136,35 +144,39 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           currency: USD
 
+      - name: Set Main Cost Report Date
+        id: main_report_date
+        run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
+
       # 1. 直接計算總價 (Breakdown)
       - name: Run Infracost Breakdown
         run: |
           infracost breakdown --path aws-tf \
                               --format json \
-                              --out-file infracost.json
+                              --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
 
       # 2. 顯示在 Console (這就是你想要的！Push Main 都有得睇)
       - name: Show Cost Table in Console
         run: |
-          infracost output --path infracost.json --format table
+          infracost output --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json --format table
 
       # 3. 生成 HTML Report (即使不上 Cloud Dashboard 都有得下載)
       - name: Generate HTML Report
         run: |
-          infracost output --path infracost.json --format html --out-file infracost-main-report.html
+          infracost output --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json --format html --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
 
       # 4. Upload Artifact
       - name: Upload Cost Report
         uses: actions/upload-artifact@v4
         with:
-          name: infracost-report-main
+          name: infracost-report-main (${{ steps.main_report_date.outputs.value }})
           path: |
-            infracost-main-report.html
-            infracost.json
-          retention-days: 30
+            infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
+            infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
+          retention-days: 60
 
       # 5. (可選) 繼續 Upload 去 Cloud Dashboard
       # 如果 Trial 過期，這步可能會 Fail，你可以隨時 Comment 佢
       - name: Upload to Infracost Cloud
-        run: infracost upload --path infracost.json
+        run: infracost upload --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
         continue-on-error: true # 就算 Upload 失敗 (例如過期)，都唔好整死個 CI

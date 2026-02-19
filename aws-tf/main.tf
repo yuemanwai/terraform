@@ -44,6 +44,7 @@ module "vpc" {
 
 }
 
+# https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
@@ -81,13 +82,13 @@ module "eks" {
       desired_size = 1
 
     }
+  }
 
-    tags = {
-      Name        = local.cluster_name
-      Terraform   = "true"
-      Environment = "demo" # 識別環境
-      Owner       = "me"   # 識別邊個負責比錢/維護
-    }
+  tags = {
+    Name        = local.cluster_name
+    Terraform   = "true"
+    Environment = "demo" # 識別環境
+    Owner       = "me"   # 識別邊個負責比錢/維護
   }
 }
 
