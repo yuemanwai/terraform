@@ -76,7 +76,7 @@ module "eks_blueprints_addons" {
   argocd = {
     name          = "argocd"
     chart         = "argo-cd"
-    chart_version = "5.52.0" # 建議鎖定版本，避免突然升級爛野
+    chart_version = "9.4.3" # 建議鎖定版本，避免突然升級爛野
     repository    = "https://argoproj.github.io/argo-helm"
     namespace     = "argocd"
 
