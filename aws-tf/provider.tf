@@ -7,7 +7,7 @@ terraform {
   cloud {
     organization = "it_dog"
     workspaces {
-      name = "learn-terraform-eks"
+      name = "base"
     }
   }
 
@@ -45,8 +45,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.region
-  profile = "fyp-sso"
+  region = var.region
 }
 
 provider "cloudflare" {

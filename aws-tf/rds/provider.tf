@@ -16,8 +16,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = data.terraform_remote_state.vpc_eks.outputs.region
-  profile = "fyp-sso"
+  region = data.terraform_remote_state.vpc_eks.outputs.region
 }
 
 
@@ -26,7 +25,7 @@ data "terraform_remote_state" "vpc_eks" {
   config = {
     organization = "it_dog"
     workspaces = {
-      name = "learn-terraform-eks"
+      name = "base"
     }
   }
 }

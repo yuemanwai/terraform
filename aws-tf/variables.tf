@@ -33,7 +33,6 @@ variable "db_username" {
 variable "db_name" {
   description = "Database name"
   type        = string
-  sensitive   = true
 }
 
 variable "db_port" {

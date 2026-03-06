@@ -39,7 +39,7 @@ data "terraform_remote_state" "vpc_eks" {
   config = {
     organization = "it_dog"
     workspaces = {
-      name = "learn-terraform-eks"
+      name = "base"
     }
   }
 }
@@ -63,8 +63,7 @@ data "aws_eks_cluster_auth" "eks" {
 }
 
 provider "aws" {
-  region  = var.region
-  profile = "fyp-sso"
+  region = var.region
 }
 
 provider "cloudflare" {

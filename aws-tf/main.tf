@@ -57,7 +57,7 @@ module "eks" {
   cluster_name = local.cluster_name
   # Extra cost will be charged on extended support, keep an eye on the EKS Kubernetes version updates:
   # https://docs.aws.amazon.com/zh_tw/eks/latest/userguide/kubernetes-versions.html
-  cluster_version = "1.33"
+  cluster_version = "1.35"
 
   # this is for local using cmd to run kubectl, restrict access to only my IP
   cluster_endpoint_public_access           = true
