@@ -63,10 +63,8 @@ data "aws_eks_cluster_auth" "eks" {
 }
 
 provider "aws" {
-  region     = var.region
-  access_key = var.aws_access_key_id
-  secret_key = var.aws_secret_access_key
-  profile    = "fyp-sso"
+  region  = var.region
+  profile = "fyp-sso"
 }
 
 provider "cloudflare" {
