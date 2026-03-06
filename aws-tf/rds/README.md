@@ -45,6 +45,13 @@
 3. Terraform Cloud 組織存取權限
 4. 配置您的公共 IP 地址以允許外部存取
 
+# 建立兩個 Symlink
+```bash
+cd ~/workspaces/terraform/aws-tf/rds
+ln -s ../global.auto.tfvars global.auto.tfvars
+ln -s ../variables.tf variables.tf
+```
+
 ### 部署步驟
 
 1. **配置變數**

@@ -54,10 +54,13 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
 
-  cluster_name    = local.cluster_name
+  cluster_name = local.cluster_name
+  # Extra cost will be charged on extended support, keep an eye on the EKS Kubernetes version updates:
+  # https://docs.aws.amazon.com/zh_tw/eks/latest/userguide/kubernetes-versions.html
   cluster_version = "1.33"
 
-  cluster_endpoint_public_access           = false
+  # this is for local using cmd to run kubectl, restrict access to only my IP
+  cluster_endpoint_public_access           = true
   cluster_endpoint_public_access_cidrs     = [local.my_ipv4]
   enable_cluster_creator_admin_permissions = true
 
@@ -103,7 +106,7 @@ module "eks" {
 ####################################################################################
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {
-    command = "aws eks --region ${var.region} update-kubeconfig --name ${local.cluster_name}"
+    command = "aws eks --region ${var.region} update-kubeconfig --name ${local.cluster_name} --profile fyp-sso"
   }
 
   depends_on = [module.eks]
