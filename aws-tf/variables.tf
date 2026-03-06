@@ -3,23 +3,74 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-2"
 }
 
 variable "cloudflare_api_token" {
   description = "Cloudflare API token"
   type        = string
-  default     = ""
+  sensitive   = true
 }
 
 variable "domain_name" {
   description = "The domain name for the Flask Ingress (e.g., example.com)."
   type        = string
-  default     = "ashleyyue.me"
 }
 
 variable "cloudflare_zone_id" {
   description = "Cloudflare Zone ID for the domain."
   type        = string
-  default     = ""
 }
+
+# ================================================================================================================== #
+# For RDS workspace only
+
+variable "db_username" {
+  description = "Database username"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_port" {
+  description = "Database port"
+  type        = string
+}
+
+# ================================================================================================================== #
+# For EKS workspace only
+
+# variable "app_name" {
+#   description = "Name of the Flask application."
+#   type        = string
+# }
+
+# variable "app_namespace" {
+#   description = "Namespace for the Flask application deployment."
+#   type        = string
+# }
+
+# variable "app_image" {
+#   description = "Docker image for the Flask application."
+#   type        = string
+# }
+
+# variable "app_port" {
+#   description = "Port the Flask application listens on inside the container."
+#   type        = number
+# }
+
+# variable "service_port" {
+#   description = "Port the Kubernetes Service exposes to the Ingress."
+#   type        = number
+# }
+
+# variable "GEMINI_API_KEY" {
+#   description = "Gemini API key."
+#   type        = string
+#   default     = ""
+# }
