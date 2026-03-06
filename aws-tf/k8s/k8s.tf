@@ -46,6 +46,8 @@ module "eks_blueprints_addons" {
 
   # 新版寫法：直接係度定義 Helm Chart 內容
   external_dns = {
+    timeout = 600 # 加長部署 ExternalDNS 的超時時間，避免因為資源創建慢而失敗
+
     name          = "external-dns"
     chart         = "external-dns"
     chart_version = "1.14.3" # 建議用較新版本
@@ -74,6 +76,8 @@ module "eks_blueprints_addons" {
     ]
   }
   argocd = {
+    timeout = 600 # 加長部署 ArgoCD 的超時時間，避免因為資源創建慢而失敗
+
     name          = "argocd"
     chart         = "argo-cd"
     chart_version = "9.4.3" # 建議鎖定版本，避免突然升級爛野
