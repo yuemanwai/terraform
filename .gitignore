@@ -15,6 +15,9 @@ crash.*.log
 # to change depending on the environment.
 *.tfvars
 *.tfvars.json
+*.tfvars.backup
+*.tfvars.backup.*
+
 *.tfstate.backup
 *.tfstate.backup.*
 
