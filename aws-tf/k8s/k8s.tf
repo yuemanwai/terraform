@@ -76,7 +76,7 @@ module "eks_blueprints_addons" {
   argocd = {
     name          = "argocd"
     chart         = "argo-cd"
-    chart_version = "5.52.0" # 建議鎖定版本，避免突然升級爛野
+    chart_version = "9.4.3" # 建議鎖定版本，避免突然升級爛野
     repository    = "https://argoproj.github.io/argo-helm"
     namespace     = "argocd"
 
@@ -90,12 +90,34 @@ module "eks_blueprints_addons" {
       # 2. 減少各組件 Replicas 到 1 (慳 CPU/RAM)
       controller:
         replicas: 1
+        metrics:
+          enabled: false
+          server:
+            enabled: false
       server:
         replicas: 1
+        autoscaling:
+          enabled: false
+        metrics:
+          enabled: false
+          server:
+            enabled: false
       repoServer:
         replicas: 1
+        autoscaling:
+          enabled: false
+        metrics:
+          enabled: false
+          server:
+            enabled: false
       applicationSet:
-        replicas: 1
+        enabled: false
+
+      dex:
+        enabled: false
+
+      notifications:
+        enabled: true
 
       # 3. (Optional) 如果你想直接用 HTTP 唔想煩自簽證書警告
       server:

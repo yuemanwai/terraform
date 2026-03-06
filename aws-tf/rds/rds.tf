@@ -16,12 +16,12 @@ resource "aws_security_group" "rds_sg" {
     security_groups = [data.terraform_remote_state.vpc_eks.outputs.node_security_group_id]
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # egress {
+  #   from_port   = 0
+  #   to_port     = 0
+  #   protocol    = "-1"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
 
   tags = {
     Name = "rds-sg"

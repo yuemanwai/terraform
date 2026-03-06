@@ -6,9 +6,14 @@ data "aws_availability_zones" "available" {
   }
 }
 
+data "http" "myip" {
+  url = "https://ipv4.icanhazip.com"
+}
+
 locals {
   cluster_name = "demo-eks-${random_string.suffix.result}"
   vpc_name     = "demo-vpc-${random_string.suffix.result}"
+  my_ipv4      = "${chomp(data.http.myip.response_body)}/32"
 }
 
 resource "random_string" "suffix" {
@@ -53,7 +58,7 @@ module "eks" {
   cluster_version = "1.33"
 
   cluster_endpoint_public_access           = false
-  cluster_endpoint_public_access_cidrs     = ["203.218.195.24/32"]
+  cluster_endpoint_public_access_cidrs     = [local.my_ipv4]
   enable_cluster_creator_admin_permissions = true
 
   # cluster_addons = {
