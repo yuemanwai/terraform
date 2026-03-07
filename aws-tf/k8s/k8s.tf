@@ -35,8 +35,8 @@ module "eks_blueprints_addons" {
   enable_aws_load_balancer_controller = true
   enable_external_dns                 = true
   enable_argocd                       = true
+  enable_metrics_server               = true
 
-  enable_metrics_server                  = true
   enable_kube_prometheus_stack           = false
   enable_karpenter                       = false
   enable_cert_manager                    = false
