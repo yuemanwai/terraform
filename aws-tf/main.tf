@@ -6,14 +6,13 @@ data "aws_availability_zones" "available" {
   }
 }
 
-data "http" "myip" {
-  url = "https://ipv4.icanhazip.com"
+data "aws_iam_role" "sso_admin" {
+  name = "AWSReservedSSO_AdministratorAccess_8b8eb430a80a0d3d"
 }
 
 locals {
   cluster_name = "demo-eks-${random_string.suffix.result}"
   vpc_name     = "demo-vpc-${random_string.suffix.result}"
-  my_ipv4      = "${chomp(data.http.myip.response_body)}/32"
 }
 
 resource "random_string" "suffix" {
@@ -61,9 +60,24 @@ module "eks" {
 
   # this is for local using cmd to run kubectl, restrict access to only my IP
   cluster_endpoint_public_access           = true
-  cluster_endpoint_public_access_cidrs     = [local.my_ipv4]
+  cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"]
   enable_cluster_creator_admin_permissions = true
 
+  # 👇 加上呢段：正式授權你個 SSO 身份成為 Cluster Admin
+  access_entries = {
+    my_sso_admin = {
+      principal_arn = data.aws_iam_role.sso_admin.arn
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
   # cluster_addons = {
   #   aws-ebs-csi-driver = {
   #     service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
@@ -101,16 +115,6 @@ module "eks" {
 }
 
 
-####################################################################################
-###  Null Resource to update the kubeconfig file
-####################################################################################
-resource "null_resource" "update_kubeconfig" {
-  provisioner "local-exec" {
-    command = "aws eks --region ${var.region} update-kubeconfig --name ${local.cluster_name}"
-  }
-
-  depends_on = [module.eks]
-}
 
 # # https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/
 # data "aws_iam_policy" "ebs_csi_policy" {
