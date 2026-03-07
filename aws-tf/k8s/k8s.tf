@@ -36,7 +36,7 @@ module "eks_blueprints_addons" {
   enable_external_dns                 = true
   enable_argocd                       = true
 
-  enable_metrics_server                  = false
+  enable_metrics_server                  = true
   enable_kube_prometheus_stack           = false
   enable_karpenter                       = false
   enable_cert_manager                    = false
@@ -137,8 +137,100 @@ module "eks_blueprints_addons" {
     Owner       = "me"
   }
 }
-# ================================================================================================================== #
 
+# ================================================================================================================== #
+# 假設你已經喺 variables.tf 定義咗 repoURL, github_token 同 github_username
+
+resource "kubernetes_secret" "argocd_github_repo" {
+  depends_on = [module.eks_blueprints_addons]
+
+  metadata {
+    name      = "github-repo-secret"
+    namespace = "argocd"
+    labels = {
+      # 呢個 label 極重要！佢話俾 ArgoCD 聽：呢個 secret 係用嚟連 Git 嘅！
+      "argocd.argoproj.io/secret-type" = "repository"
+    }
+  }
+
+  data = {
+    type     = "git"
+    url      = var.repoURL
+    username = var.github_username
+    password = var.github_token # 注入你嘅 PAT
+  }
+}
+
+# ================================================================================================================== #
+# ==========================================================================
+# ArgoCD Application Definition (GitOps The Last Mile)
+# ==========================================================================
+
+# 確保 ArgoCD 已經裝好先執行呢段
+resource "kubernetes_manifest" "argocd_webapp" {
+  depends_on = [module.eks_blueprints_addons] # 極度重要：等 ArgoCD 裝好先！
+
+  manifest = {
+    apiVersion = "argoproj.io/v1alpha1"
+    kind       = "Application"
+    metadata = {
+      name       = "my-app"
+      namespace  = "argocd"
+      finalizers = ["resources-finalizer.argocd.argoproj.io"]
+    }
+    spec = {
+      project = "default"
+      source = {
+        # 👇 記得換返做你放 Helm Chart 嘅 GitHub Repo URL 同埋路徑
+        repoURL        = var.repoURL
+        targetRevision = "HEAD"
+        path           = "charts/webapp"
+
+        helm = {
+          # 🔥 直接寫死讀取兩份，取代你 Local 嘅 $useProdValues if-else 邏輯
+          valueFiles = ["values.yaml", "values-prod.yaml"]
+
+          # 🔥 將 AWS 資源凌空打入去！
+          parameters = [
+            {
+              name        = "database.host"
+              value       = module.db.db_instance_endpoint
+              forceString = true
+            },
+            {
+              name        = "database.name"
+              value       = var.db_name
+              forceString = true
+            },
+            {
+              name        = "env.awsSecretName"
+              value       = module.db.db_instance_master_user_secret_arn
+              forceString = true
+            },
+            {
+              name        = "env.awsRegion"
+              value       = var.region
+              forceString = true
+            }
+          ]
+        }
+      }
+      destination = {
+        # Terraform 會自動用內部 K8s URL
+        server    = "https://kubernetes.default.svc"
+        namespace = "default" # 👈 跟返你 Local 設定部署去 default namespace (或者改做 webapp-prod)
+      }
+      syncPolicy = {
+        automated = {
+          prune    = true
+          selfHeal = true
+        }
+        syncOptions = ["CreateNamespace=true"]
+      }
+    }
+  }
+}
+# ================================================================================================================== #
 # # Create Kubernetes Service Account (Bind Role)
 # resource "kubernetes_service_account" "flask_sa" {
 #   metadata {

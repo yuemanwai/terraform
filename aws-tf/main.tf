@@ -63,6 +63,9 @@ module "eks" {
   cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"]
   enable_cluster_creator_admin_permissions = true
 
+  create_cloudwatch_log_group = false
+  cluster_enabled_log_types   = []
+
   # 👇 加上呢段：正式授權你個 SSO 身份成為 Cluster Admin
   access_entries = {
     my_sso_admin = {

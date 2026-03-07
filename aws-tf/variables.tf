@@ -73,3 +73,22 @@ variable "db_port" {
 #   type        = string
 #   default     = ""
 # }
+
+variable "repoURL" {
+  type        = string
+  default     = ""
+  description = "repoURL for ArgoCD to sync with"
+}
+
+variable "github_username" {
+  type        = string
+  default     = ""
+  description = "GitHub username"
+}
+
+variable "github_token" {
+  type        = string
+  default     = ""
+  description = "GitHub personal access token (PAT) with repo access"
+  sensitive   = true
+}
