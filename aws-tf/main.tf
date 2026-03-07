@@ -106,7 +106,7 @@ module "eks" {
 ####################################################################################
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {
-    command = "aws eks --region ${var.region} update-kubeconfig --name ${local.cluster_name} --profile fyp-sso"
+    command = "aws eks --region ${var.region} update-kubeconfig --name ${local.cluster_name}"
   }
 
   depends_on = [module.eks]
