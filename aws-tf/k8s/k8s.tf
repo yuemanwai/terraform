@@ -170,6 +170,11 @@ resource "kubernetes_secret" "argocd_github_repo" {
 resource "kubernetes_manifest" "argocd_webapp" {
   depends_on = [module.eks_blueprints_addons] # 極度重要：等 ArgoCD 裝好先！
 
+  # 👇 魔法喺呢度：SRE 霸氣宣告，Terraform 有絕對優先權！
+  field_manager {
+    force_conflicts = true
+  }
+
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
@@ -184,7 +189,7 @@ resource "kubernetes_manifest" "argocd_webapp" {
         # 👇 記得換返做你放 Helm Chart 嘅 GitHub Repo URL 同埋路徑
         repoURL        = var.repoURL
         targetRevision = "HEAD"
-        path           = "charts/webapp"
+        path           = "gitops/apps/jp"
 
         helm = {
           # 🔥 直接寫死讀取兩份，取代你 Local 嘅 $useProdValues if-else 邏輯
@@ -194,22 +199,34 @@ resource "kubernetes_manifest" "argocd_webapp" {
           parameters = [
             {
               name        = "database.host"
-              value       = module.db.db_instance_endpoint
+              value       = data.terraform_remote_state.rds.outputs.db_instance_address
               forceString = true
             },
             {
               name        = "database.name"
-              value       = var.db_name
+              value       = data.terraform_remote_state.rds.outputs.db_name
               forceString = true
             },
             {
               name        = "env.awsSecretName"
-              value       = module.db.db_instance_master_user_secret_arn
+              value       = data.terraform_remote_state.rds.outputs.db_secret_arn
               forceString = true
             },
             {
               name        = "env.awsRegion"
               value       = var.region
+              forceString = true
+            },
+            {
+              # ⚠️ 留意寫法：Helm 對於有「點 (.)」嘅 Key，需要用 \\ 來 Escape
+              name        = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+              value       = data.terraform_remote_state.rds.outputs.irsa_rds_role_arn
+              forceString = true
+            },
+            {
+              # ⚠️ 魔法防護罩再次出動：用 \\ 去 Escape 嗰幾粒點！
+              name        = "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/certificate-arn"
+              value       = aws_acm_certificate.web_cert.arn # 👈 呢度填返你 Terraform 裡面 ACM Cert 嘅 output/reference
               forceString = true
             }
           ]

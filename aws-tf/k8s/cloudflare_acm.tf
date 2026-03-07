@@ -16,9 +16,9 @@ resource "cloudflare_dns_record" "acm_validation" {
 
   # 喺 ACM 嘅輸出入面，搵返對應目前呢個 domain 嘅驗證資料
   # 數值 (Value) 可以係 "known after apply"，但 Key 唔可以
-  name    = [for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_name if dvo.domain_name == each.value][0]
+  name    = trimsuffix([for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_name if dvo.domain_name == each.value][0], ".")
+  content = trimsuffix([for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_value if dvo.domain_name == each.value][0], ".")
   type    = [for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_type if dvo.domain_name == each.value][0]
-  content = [for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_value if dvo.domain_name == each.value][0]
 
   ttl     = 60
   proxied = false # ⚠️ 必須係 false，否則 AWS 驗證唔到
