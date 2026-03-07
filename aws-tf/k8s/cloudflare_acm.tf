@@ -1,6 +1,28 @@
 # ================================================================================================================== #
 # Cloudflare ACM certificate and DNS validation
 # ================================================================================================================== #
+locals {
+  # 🌟 核心：先將要驗證嘅 domains 放入一個靜態 list
+  # 咁樣 Terraform 喺 Plan 階段就 100% 肯定有幾多粒 Record 要起
+  cert_validation_domains = [var.domain_name]
+  # 如果你有 subdomains，可以寫成 [var.domain_name, "api.${var.domain_name}"]
+}
+
+resource "cloudflare_dns_record" "acm_validation" {
+  # 🌟 關鍵改動：用 local list 做 for_each 嘅來源
+  for_each = { for d in local.cert_validation_domains : d => d }
+
+  zone_id = var.cloudflare_zone_id
+
+  # 喺 ACM 嘅輸出入面，搵返對應目前呢個 domain 嘅驗證資料
+  # 數值 (Value) 可以係 "known after apply"，但 Key 唔可以
+  name    = trimsuffix([for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_name if dvo.domain_name == each.value][0], ".")
+  content = trimsuffix([for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_value if dvo.domain_name == each.value][0], ".")
+  type    = [for dvo in aws_acm_certificate.web_cert.domain_validation_options : dvo.resource_record_type if dvo.domain_name == each.value][0]
+
+  ttl     = 60
+  proxied = false # ⚠️ 必須係 false，否則 AWS 驗證唔到
+}
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate
 resource "aws_acm_certificate" "web_cert" {
@@ -22,23 +44,23 @@ data "cloudflare_zone" "main" {
 }
 
 
-# https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record
-resource "cloudflare_dns_record" "acm_validation" {
-  for_each = {
-    for dvo in tolist(aws_acm_certificate.web_cert.domain_validation_options) :
-    dvo.domain_name => {
-      name  = dvo.resource_record_name
-      type  = dvo.resource_record_type  #  "CNAME"
-      value = dvo.resource_record_value #  xxx.acm-validations.aws.
-    }
-  }
+# # https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record
+# resource "cloudflare_dns_record" "acm_validation" {
+#   for_each = {
+#     for dvo in tolist(aws_acm_certificate.web_cert.domain_validation_options) :
+#     dvo.domain_name => {
+#       name  = dvo.resource_record_name
+#       type  = dvo.resource_record_type  #  "CNAME"
+#       value = dvo.resource_record_value #  xxx.acm-validations.aws.
+#     }
+#   }
 
-  zone_id = data.cloudflare_zone.main.zone_id
-  name    = each.value.name
-  type    = each.value.type
-  content = each.value.value
-  ttl     = 300
-}
+#   zone_id = data.cloudflare_zone.main.zone_id
+#   name    = each.value.name
+#   type    = each.value.type
+#   content = each.value.value
+#   ttl     = 300
+# }
 
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation

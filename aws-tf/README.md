@@ -6,6 +6,7 @@ Terraform configuration files to provision an EKS cluster on AWS.
 ```bash
 # Update your kubeconfig file to use the EKS cluster
 cd aws-tf
+export AWS_PROFILE=<use-your-own-profile-here>
 aws eks --region $(terraform output -raw region) update-kubeconfig \
-    --name $(terraform output -raw cluster_name)
+    --name $(terraform output -raw cluster_name) --profile $AWS_PROFILE
 ```

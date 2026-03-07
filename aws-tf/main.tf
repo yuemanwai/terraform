@@ -6,14 +6,13 @@ data "aws_availability_zones" "available" {
   }
 }
 
-data "http" "myip" {
-  url = "https://ipv4.icanhazip.com"
+data "aws_iam_role" "sso_admin" {
+  name = "AWSReservedSSO_AdministratorAccess_8b8eb430a80a0d3d"
 }
 
 locals {
   cluster_name = "demo-eks-${random_string.suffix.result}"
   vpc_name     = "demo-vpc-${random_string.suffix.result}"
-  my_ipv4      = "${chomp(data.http.myip.response_body)}/32"
 }
 
 resource "random_string" "suffix" {
@@ -54,13 +53,34 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
 
-  cluster_name    = local.cluster_name
-  cluster_version = "1.33"
+  cluster_name = local.cluster_name
+  # Extra cost will be charged on extended support, keep an eye on the EKS Kubernetes version updates:
+  # https://docs.aws.amazon.com/zh_tw/eks/latest/userguide/kubernetes-versions.html
+  cluster_version = "1.35"
 
-  cluster_endpoint_public_access           = false
-  cluster_endpoint_public_access_cidrs     = [local.my_ipv4]
+  # this is for local using cmd to run kubectl, restrict access to only my IP
+  cluster_endpoint_public_access           = true
+  cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"]
   enable_cluster_creator_admin_permissions = true
 
+  create_cloudwatch_log_group = false
+  cluster_enabled_log_types   = []
+
+  # 👇 加上呢段：正式授權你個 SSO 身份成為 Cluster Admin
+  access_entries = {
+    my_sso_admin = {
+      principal_arn = data.aws_iam_role.sso_admin.arn
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
   # cluster_addons = {
   #   aws-ebs-csi-driver = {
   #     service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
@@ -98,16 +118,6 @@ module "eks" {
 }
 
 
-####################################################################################
-###  Null Resource to update the kubeconfig file
-####################################################################################
-resource "null_resource" "update_kubeconfig" {
-  provisioner "local-exec" {
-    command = "aws eks --region ${var.region} update-kubeconfig --name ${local.cluster_name}"
-  }
-
-  depends_on = [module.eks]
-}
 
 # # https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/
 # data "aws_iam_policy" "ebs_csi_policy" {

@@ -35,8 +35,8 @@ module "eks_blueprints_addons" {
   enable_aws_load_balancer_controller = true
   enable_external_dns                 = true
   enable_argocd                       = true
+  enable_metrics_server               = true
 
-  enable_metrics_server                  = false
   enable_kube_prometheus_stack           = false
   enable_karpenter                       = false
   enable_cert_manager                    = false
@@ -46,6 +46,8 @@ module "eks_blueprints_addons" {
 
   # 新版寫法：直接係度定義 Helm Chart 內容
   external_dns = {
+    timeout = 600 # 加長部署 ExternalDNS 的超時時間，避免因為資源創建慢而失敗
+
     name          = "external-dns"
     chart         = "external-dns"
     chart_version = "1.14.3" # 建議用較新版本
@@ -74,6 +76,8 @@ module "eks_blueprints_addons" {
     ]
   }
   argocd = {
+    timeout = 600 # 加長部署 ArgoCD 的超時時間，避免因為資源創建慢而失敗
+
     name          = "argocd"
     chart         = "argo-cd"
     chart_version = "9.4.3" # 建議鎖定版本，避免突然升級爛野
@@ -133,8 +137,117 @@ module "eks_blueprints_addons" {
     Owner       = "me"
   }
 }
-# ================================================================================================================== #
 
+# ================================================================================================================== #
+# 假設你已經喺 variables.tf 定義咗 repoURL, github_token 同 github_username
+
+resource "kubernetes_secret" "argocd_github_repo" {
+  depends_on = [module.eks_blueprints_addons]
+
+  metadata {
+    name      = "github-repo-secret"
+    namespace = "argocd"
+    labels = {
+      # 呢個 label 極重要！佢話俾 ArgoCD 聽：呢個 secret 係用嚟連 Git 嘅！
+      "argocd.argoproj.io/secret-type" = "repository"
+    }
+  }
+
+  data = {
+    type     = "git"
+    url      = var.repoURL
+    username = var.github_username
+    password = var.github_token # 注入你嘅 PAT
+  }
+}
+
+# ================================================================================================================== #
+# ==========================================================================
+# ArgoCD Application Definition (GitOps The Last Mile)
+# ==========================================================================
+
+# 確保 ArgoCD 已經裝好先執行呢段
+resource "kubernetes_manifest" "argocd_webapp" {
+  depends_on = [module.eks_blueprints_addons] # 極度重要：等 ArgoCD 裝好先！
+
+  # 👇 魔法喺呢度：SRE 霸氣宣告，Terraform 有絕對優先權！
+  field_manager {
+    force_conflicts = true
+  }
+
+  manifest = {
+    apiVersion = "argoproj.io/v1alpha1"
+    kind       = "Application"
+    metadata = {
+      name       = "my-app"
+      namespace  = "argocd"
+      finalizers = ["resources-finalizer.argocd.argoproj.io"]
+    }
+    spec = {
+      project = "default"
+      source = {
+        # 👇 記得換返做你放 Helm Chart 嘅 GitHub Repo URL 同埋路徑
+        repoURL        = var.repoURL
+        targetRevision = "HEAD"
+        path           = "gitops/apps/jp"
+
+        helm = {
+          # 🔥 直接寫死讀取兩份，取代你 Local 嘅 $useProdValues if-else 邏輯
+          valueFiles = ["values.yaml", "values-prod.yaml"]
+
+          # 🔥 將 AWS 資源凌空打入去！
+          parameters = [
+            {
+              name        = "database.host"
+              value       = data.terraform_remote_state.rds.outputs.db_instance_address
+              forceString = true
+            },
+            {
+              name        = "database.name"
+              value       = data.terraform_remote_state.rds.outputs.db_name
+              forceString = true
+            },
+            {
+              name        = "env.awsSecretName"
+              value       = data.terraform_remote_state.rds.outputs.db_secret_arn
+              forceString = true
+            },
+            {
+              name        = "env.awsRegion"
+              value       = var.region
+              forceString = true
+            },
+            {
+              # ⚠️ 留意寫法：Helm 對於有「點 (.)」嘅 Key，需要用 \\ 來 Escape
+              name        = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+              value       = data.terraform_remote_state.rds.outputs.irsa_rds_role_arn
+              forceString = true
+            },
+            {
+              # ⚠️ 魔法防護罩再次出動：用 \\ 去 Escape 嗰幾粒點！
+              name        = "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/certificate-arn"
+              value       = aws_acm_certificate.web_cert.arn # 👈 呢度填返你 Terraform 裡面 ACM Cert 嘅 output/reference
+              forceString = true
+            }
+          ]
+        }
+      }
+      destination = {
+        # Terraform 會自動用內部 K8s URL
+        server    = "https://kubernetes.default.svc"
+        namespace = "default" # 👈 跟返你 Local 設定部署去 default namespace (或者改做 webapp-prod)
+      }
+      syncPolicy = {
+        automated = {
+          prune    = true
+          selfHeal = true
+        }
+        syncOptions = ["CreateNamespace=true"]
+      }
+    }
+  }
+}
+# ================================================================================================================== #
 # # Create Kubernetes Service Account (Bind Role)
 # resource "kubernetes_service_account" "flask_sa" {
 #   metadata {
