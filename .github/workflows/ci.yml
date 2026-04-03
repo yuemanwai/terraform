@@ -1,6 +1,10 @@
 name: AWS Terraform Security & Cost Analysis
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -21,6 +25,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Install Trivy CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
       # Step 0: 下載 Template (如你所願，讀本地 .github/trivy.tpl)
       # 確保你 repo 入面真係有呢個 file，否則這步會 fail
       # 如果未有，可以暫時 comment 咗 template 相關行數
@@ -30,34 +43,22 @@ jobs:
         run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
 
       - name: Generate Trivy HTML Report
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "fs"
-          scan-ref: "./aws-tf"
-          scanners: "vuln,secret,misconfig"
-          format: "template"
-          template: "@.github/trivy.tpl"
-          output: "aws-security-report-${{ steps.security_report_date.outputs.value }}.html"
-          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
-          exit-code: "0"
+        run: |
+          trivy fs ./aws-tf \
+            --scanners vuln,secret,misconfig \
+            --format template \
+            --template "@.github/trivy.tpl" \
+            --output "aws-security-report-${{ steps.security_report_date.outputs.value }}.html" \
+            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+            --exit-code 0
 
       - name: Show Security Risks in Console
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "fs"
-          scan-ref: "./aws-tf"
-          scanners: "vuln,secret,misconfig"
-          format: "table"
-          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
-          exit-code: "0"
-
-      - name: Upload Security Artifact
-        uses: actions/upload-artifact@v5
-        if: always()
-        with:
-          name: aws-security-report (${{ steps.security_report_date.outputs.value }})
-          path: aws-security-report-${{ steps.security_report_date.outputs.value }}.html
-          retention-days: 60
+        run: |
+          trivy fs ./aws-tf \
+            --scanners vuln,secret,misconfig \
+            --format table \
+            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+            --exit-code 0
 
   # ====================================================
   # Job 2: Cost Estimation (Pull Request 專用)
@@ -67,13 +68,14 @@ jobs:
     name: Cost Estimation (PR Diff)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    env:
+      INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
 
     steps:
-      - name: Setup Infracost
-        uses: infracost/actions/setup@v3
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-          currency: USD
+      - name: Install Infracost CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh -s -- -b /usr/local/bin
+          infracost --version
 
       - name: Set PR Cost Report Date
         id: pr_report_date
@@ -89,6 +91,7 @@ jobs:
         run: |
           infracost breakdown --path aws-tf \
                               --show-skipped \
+                              --currency USD \
                               --format json \
                               --out-file /tmp/infracost-base.json
 
@@ -100,6 +103,7 @@ jobs:
         run: |
           infracost diff --path aws-tf \
                          --show-skipped \
+                         --currency USD \
                          --format json \
                          --compare-to /tmp/infracost-base.json \
                          --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
@@ -119,16 +123,6 @@ jobs:
       - name: Generate Cost HTML Report
         run: infracost output --path infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format html --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
 
-      - name: Upload Cost Report
-        uses: actions/upload-artifact@v5
-        if: always()
-        with:
-          name: infracost-report-pr (${{ steps.pr_report_date.outputs.value }})
-          path: |
-            infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
-            infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
-          retention-days: 60
-
   # ====================================================
   # Job 3: Main Branch Cost Analysis (Push Main 專用)
   # 邏輯：只計總數 (Total)，無 Diff，但要出 Report
@@ -138,16 +132,17 @@ jobs:
     runs-on: ubuntu-latest
     # 當 Push 去 Main 時執行
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
 
     steps:
       - name: Checkout main
         uses: actions/checkout@v5
 
-      - name: Setup Infracost
-        uses: infracost/actions/setup@v3
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-          currency: USD
+      - name: Install Infracost CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh -s -- -b /usr/local/bin
+          infracost --version
 
       - name: Set Main Cost Report Date
         id: main_report_date
@@ -158,6 +153,7 @@ jobs:
         run: |
           infracost breakdown --path aws-tf \
                               --show-skipped \
+                              --currency USD \
                               --format json \
                               --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
 
@@ -171,17 +167,7 @@ jobs:
         run: |
           infracost output --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json --format html --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
 
-      # 4. Upload Artifact
-      - name: Upload Cost Report
-        uses: actions/upload-artifact@v5
-        with:
-          name: infracost-report-main (${{ steps.main_report_date.outputs.value }})
-          path: |
-            infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
-            infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
-          retention-days: 60
-
-      # 5. (可選) 繼續 Upload 去 Cloud Dashboard
+      # 4. (可選) 繼續 Upload 去 Cloud Dashboard
       # 如果 Trial 過期，這步可能會 Fail，你可以隨時 Comment 佢
       - name: Upload to Infracost Cloud
         run: infracost upload --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
