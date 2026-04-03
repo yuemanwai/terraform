@@ -2,6 +2,9 @@ name: AWS Terraform Security & Cost Analysis
 
 on: [push, pull_request]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: read
   pull-requests: write # 必須有，Infracost 才能在 PR 留言
@@ -16,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Step 0: 下載 Template (如你所願，讀本地 .github/trivy.tpl)
       # 確保你 repo 入面真係有呢個 file，否則這步會 fail
@@ -49,7 +52,7 @@ jobs:
           exit-code: "0"
 
       - name: Upload Security Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: aws-security-report (${{ steps.security_report_date.outputs.value }})
@@ -78,7 +81,7 @@ jobs:
 
       # 計算 Base (舊)
       - name: Checkout base branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: "${{ github.event.pull_request.base.ref }}"
 
@@ -91,7 +94,7 @@ jobs:
 
       # 計算 PR (新)
       - name: Checkout PR branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Generate Cost Diff
         run: |
@@ -117,7 +120,7 @@ jobs:
         run: infracost output --path infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format html --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
 
       - name: Upload Cost Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: infracost-report-pr (${{ steps.pr_report_date.outputs.value }})
@@ -138,7 +141,7 @@ jobs:
 
     steps:
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v3
@@ -170,7 +173,7 @@ jobs:
 
       # 4. Upload Artifact
       - name: Upload Cost Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: infracost-report-main (${{ steps.main_report_date.outputs.value }})
           path: |
