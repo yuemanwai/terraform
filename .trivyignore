@@ -18,5 +18,6 @@ AWS-0176
 AWS-0177
 
 # [FinOps] Cost Optimization
-# Reason: Performance Insights disabled to minimize unnecessary AWS billing charges for the non-production cluster.
+# Reason: Performance Insights and Control Plane Logging (API, Audit, etc.) are disabled to minimize unnecessary AWS CloudWatch billing charges for the non-production environment.
 AWS-0133
+AWS-0038
