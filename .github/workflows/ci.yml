@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - .infracost-reports/**
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -91,7 +93,6 @@ jobs:
         run: |
           infracost breakdown --path aws-tf \
                               --show-skipped \
-                              --currency USD \
                               --format json \
                               --out-file /tmp/infracost-base.json
 
@@ -103,7 +104,6 @@ jobs:
         run: |
           infracost diff --path aws-tf \
                          --show-skipped \
-                         --currency USD \
                          --format json \
                          --compare-to /tmp/infracost-base.json \
                          --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
@@ -131,7 +131,7 @@ jobs:
     name: Cost Analysis (Main Total)
     runs-on: ubuntu-latest
     # 當 Push 去 Main 時執行
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
     env:
       INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
 
@@ -153,7 +153,6 @@ jobs:
         run: |
           infracost breakdown --path aws-tf \
                               --show-skipped \
-                              --currency USD \
                               --format json \
                               --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
 
@@ -167,8 +166,26 @@ jobs:
         run: |
           infracost output --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json --format html --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
 
-      # 4. (可選) 繼續 Upload 去 Cloud Dashboard
-      # 如果 Trial 過期，這步可能會 Fail，你可以隨時 Comment 佢
-      - name: Upload to Infracost Cloud
-        run: infracost upload --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
-        continue-on-error: true # 就算 Upload 失敗 (例如過期)，都唔好整死個 CI
+      # 4. 試用期完結後，改為保存在 repo
+      - name: Save Infracost reports to repo
+        run: |
+          set -euo pipefail
+          report_dir=".infracost-reports/main"
+          mkdir -p "$report_dir"
+
+          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.html" "$report_dir/infracost-latest.html"
+          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.json" "$report_dir/infracost-latest.json"
+          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.html" "$report_dir/infracost-${{ steps.main_report_date.outputs.value }}.html"
+          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.json" "$report_dir/infracost-${{ steps.main_report_date.outputs.value }}.json"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "$report_dir"
+          if git diff --cached --quiet; then
+            echo "No infracost report changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: store infracost report for ${{ steps.main_report_date.outputs.value }} [skip ci]"
+          git push
