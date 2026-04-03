@@ -45,12 +45,15 @@ jobs:
       - name: Verify Trivy template exists
         run: |
           test -f "$GITHUB_WORKSPACE/.github/trivy.tpl"
+          test -f "$GITHUB_WORKSPACE/.trivyignore"
           echo "Using template: $GITHUB_WORKSPACE/.github/trivy.tpl"
+          echo "Using ignore file: $GITHUB_WORKSPACE/.trivyignore"
 
       - name: Generate Trivy HTML Report
         run: |
           trivy fs ./aws-tf \
             --scanners vuln,secret,misconfig \
+            --ignorefile "$GITHUB_WORKSPACE/.trivyignore" \
             --format template \
             --template "@$GITHUB_WORKSPACE/.github/trivy.tpl" \
             --output "aws-security-report-${{ steps.security_report_date.outputs.value }}.html" \
@@ -61,6 +64,7 @@ jobs:
         run: |
           trivy fs ./aws-tf \
             --scanners vuln,secret,misconfig \
+            --ignorefile "$GITHUB_WORKSPACE/.trivyignore" \
             --format table \
             --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
             --exit-code 0
