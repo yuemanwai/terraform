@@ -59,8 +59,8 @@ module "eks" {
   cluster_version = "1.35"
 
   # this is for local using cmd to run kubectl, restrict access to only my IP
-  cluster_endpoint_public_access           = false # 🚨 for demo, we keep it open to avoid confusion on AWS-0104. In production, set to false and use private access only.
-  # cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"] # 🚨 for demo, we keep it open to avoid confusion on AWS-0104. In production, set to your IP range only.
+  cluster_endpoint_public_access           = true # 🚨 for demo, we keep it open to avoid confusion on AWS-0104. In production, set to false and use private access only.
+  cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"] # 🚨 for demo, we keep it open to avoid confusion on AWS-0104. In production, set to your IP range only.
   enable_cluster_creator_admin_permissions = true
 
   create_cloudwatch_log_group = false
