@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - .infracost-reports/**
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -44,12 +42,17 @@ jobs:
         id: security_report_date
         run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
 
+      - name: Verify Trivy template exists
+        run: |
+          test -f "$GITHUB_WORKSPACE/.github/trivy.tpl"
+          echo "Using template: $GITHUB_WORKSPACE/.github/trivy.tpl"
+
       - name: Generate Trivy HTML Report
         run: |
           trivy fs ./aws-tf \
             --scanners vuln,secret,misconfig \
             --format template \
-            --template "@.github/trivy.tpl" \
+            --template "@$GITHUB_WORKSPACE/.github/trivy.tpl" \
             --output "aws-security-report-${{ steps.security_report_date.outputs.value }}.html" \
             --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
             --exit-code 0
@@ -61,6 +64,14 @@ jobs:
             --format table \
             --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
             --exit-code 0
+
+      - name: Upload Security Artifact
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: aws-security-report (${{ steps.security_report_date.outputs.value }})
+          path: aws-security-report-${{ steps.security_report_date.outputs.value }}.html
+          retention-days: 60
 
   # ====================================================
   # Job 2: Cost Estimation (Pull Request 專用)
@@ -123,6 +134,16 @@ jobs:
       - name: Generate Cost HTML Report
         run: infracost output --path infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format html --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
 
+      - name: Upload Cost Report
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: infracost-report-pr (${{ steps.pr_report_date.outputs.value }})
+          path: |
+            infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.html
+            infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
+          retention-days: 60
+
   # ====================================================
   # Job 3: Main Branch Cost Analysis (Push Main 專用)
   # 邏輯：只計總數 (Total)，無 Diff，但要出 Report
@@ -131,7 +152,7 @@ jobs:
     name: Cost Analysis (Main Total)
     runs-on: ubuntu-latest
     # 當 Push 去 Main 時執行
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
       INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
 
@@ -166,26 +187,12 @@ jobs:
         run: |
           infracost output --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json --format html --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
 
-      # 4. 試用期完結後，改為保存在 repo
-      - name: Save Infracost reports to repo
-        run: |
-          set -euo pipefail
-          report_dir=".infracost-reports/main"
-          mkdir -p "$report_dir"
-
-          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.html" "$report_dir/infracost-latest.html"
-          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.json" "$report_dir/infracost-latest.json"
-          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.html" "$report_dir/infracost-${{ steps.main_report_date.outputs.value }}.html"
-          cp "infracost-report-main-${{ steps.main_report_date.outputs.value }}.json" "$report_dir/infracost-${{ steps.main_report_date.outputs.value }}.json"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add "$report_dir"
-          if git diff --cached --quiet; then
-            echo "No infracost report changes to commit."
-            exit 0
-          fi
-
-          git commit -m "chore: store infracost report for ${{ steps.main_report_date.outputs.value }} [skip ci]"
-          git push
+      - name: Upload Cost Report
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: infracost-report-main (${{ steps.main_report_date.outputs.value }})
+          path: |
+            infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
+            infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
+          retention-days: 60
