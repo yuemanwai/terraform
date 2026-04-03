@@ -59,7 +59,7 @@ module "eks" {
   cluster_version = "1.35"
 
   # this is for local using cmd to run kubectl, restrict access to only my IP
-  cluster_endpoint_public_access           = true # 🚨 for demo, we keep it open to avoid confusion on AWS-0104. In production, set to false and use private access only.
+  cluster_endpoint_public_access           = true          # 🚨 for demo, we keep it open to avoid confusion on AWS-0104. In production, set to false and use private access only.
   cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"] # 🚨 for demo, we keep it open to avoid confusion on AWS-0104. In production, set to your IP range only.
   enable_cluster_creator_admin_permissions = true
 
@@ -107,7 +107,7 @@ module "eks" {
       type        = "egress"
       cidr_blocks = ["10.0.0.0/16"] # Update this to your actual VPC CIDR.
     }
-    
+
     # Note: disabling recommended rules also removes node-to-node internal communication.
     # In real production, add back the required ingress rules. For Trivy IaC scan and demo use,
     # the two egress rules above are enough to remove the critical 0.0.0.0/0 warning.
@@ -142,4 +142,3 @@ module "eks" {
     Owner       = "me"   # Owner responsible for cost and maintenance
   }
 }
-
