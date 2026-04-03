@@ -1,0 +1,67 @@
+name: Security Scan
+
+on:
+  push:
+  pull_request:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+jobs:
+  trivy-scan:
+    name: Trivy Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install Trivy CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Set Security Report Date
+        id: security_report_date
+        run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Trivy files exist
+        run: |
+          test -f "$GITHUB_WORKSPACE/.github/trivy.tpl"
+          test -f "$GITHUB_WORKSPACE/.trivyignore"
+          echo "Using template: $GITHUB_WORKSPACE/.github/trivy.tpl"
+          echo "Using ignore file: $GITHUB_WORKSPACE/.trivyignore"
+
+      - name: Generate Trivy HTML Report
+        run: |
+          trivy fs ./aws-tf \
+            --scanners vuln,secret,misconfig \
+            --ignorefile "$GITHUB_WORKSPACE/.trivyignore" \
+            --format template \
+            --template "@$GITHUB_WORKSPACE/.github/trivy.tpl" \
+            --output "aws-security-report-${{ steps.security_report_date.outputs.value }}.html" \
+            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+            --exit-code 0
+
+      - name: Show Security Risks in Console
+        run: |
+          trivy fs ./aws-tf \
+            --scanners vuln,secret,misconfig \
+            --ignorefile "$GITHUB_WORKSPACE/.trivyignore" \
+            --format table \
+            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+            --exit-code 0
+
+      - name: Upload Security Artifact
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: security-report (${{ steps.security_report_date.outputs.value }})
+          path: aws-security-report-${{ steps.security_report_date.outputs.value }}.html
+          retention-days: 60

@@ -1,10 +1,10 @@
-name: AWS Terraform Security & Cost Analysis
+name: Cost Analysis
 
 on:
   pull_request:
   push:
-    # branches:
-    #   - main
+    branches:
+      - main
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -14,75 +14,8 @@ permissions:
   pull-requests: write # 必須有，Infracost 才能在 PR 留言
 
 jobs:
-  # ====================================================
-  # Job 1: Security Scan (Trivy)
-  # 跑係所有 Push & PR，確保安全
-  # ====================================================
-  trivy-security-scan:
-    name: Security Scan (Trivy)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Install Trivy CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install -y trivy
-
-      # Step 0: 下載 Template (如你所願，讀本地 .github/trivy.tpl)
-      # 確保你 repo 入面真係有呢個 file，否則這步會 fail
-      # 如果未有，可以暫時 comment 咗 template 相關行數
-
-      - name: Set Security Report Date
-        id: security_report_date
-        run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
-
-      - name: Verify Trivy template exists
-        run: |
-          test -f "$GITHUB_WORKSPACE/.github/trivy.tpl"
-          test -f "$GITHUB_WORKSPACE/.trivyignore"
-          echo "Using template: $GITHUB_WORKSPACE/.github/trivy.tpl"
-          echo "Using ignore file: $GITHUB_WORKSPACE/.trivyignore"
-
-      - name: Generate Trivy HTML Report
-        run: |
-          trivy fs ./aws-tf \
-            --scanners vuln,secret,misconfig \
-            --ignorefile "$GITHUB_WORKSPACE/.trivyignore" \
-            --format template \
-            --template "@$GITHUB_WORKSPACE/.github/trivy.tpl" \
-            --output "aws-security-report-${{ steps.security_report_date.outputs.value }}.html" \
-            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
-            --exit-code 0
-
-      - name: Show Security Risks in Console
-        run: |
-          trivy fs ./aws-tf \
-            --scanners vuln,secret,misconfig \
-            --ignorefile "$GITHUB_WORKSPACE/.trivyignore" \
-            --format table \
-            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
-            --exit-code 0
-
-      - name: Upload Security Artifact
-        uses: actions/upload-artifact@v5
-        if: always()
-        with:
-          name: aws-security-report (${{ steps.security_report_date.outputs.value }})
-          path: aws-security-report-${{ steps.security_report_date.outputs.value }}.html
-          retention-days: 60
-
-  # ====================================================
-  # Job 2: Cost Estimation (Pull Request 專用)
-  # 邏輯：有對比 (Diff)，有留言 (Comment)
-  # ====================================================
   cost-estimation-pr:
-    name: Cost Estimation (PR Diff)
+    name: PR Cost
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     env:
@@ -98,7 +31,6 @@ jobs:
         id: pr_report_date
         run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
 
-      # 計算 Base (舊)
       - name: Checkout base branch
         uses: actions/checkout@v5
         with:
@@ -111,7 +43,6 @@ jobs:
                               --format json \
                               --out-file /tmp/infracost-base.json
 
-      # 計算 PR (新)
       - name: Checkout PR branch
         uses: actions/checkout@v5
 
@@ -123,7 +54,6 @@ jobs:
                          --compare-to /tmp/infracost-base.json \
                          --out-file infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
 
-      # Console 顯示 + PR 留言 + HTML Report
       - name: Show Cost Table in Console
         run: infracost output --path infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json --format table
 
@@ -148,14 +78,9 @@ jobs:
             infracost-report-pr-${{ steps.pr_report_date.outputs.value }}.json
           retention-days: 60
 
-  # ====================================================
-  # Job 3: Main Branch Cost Analysis (Push Main 專用)
-  # 邏輯：只計總數 (Total)，無 Diff，但要出 Report
-  # ====================================================
   cost-estimation-main:
-    name: Cost Analysis (Main Total)
+    name: Main Cost
     runs-on: ubuntu-latest
-    # 當 Push 去 Main 時執行
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
       INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
@@ -173,7 +98,6 @@ jobs:
         id: main_report_date
         run: echo "value=$(date +'%d-%m-%Y')" >> "$GITHUB_OUTPUT"
 
-      # 1. 直接計算總價 (Breakdown)
       - name: Run Infracost Breakdown
         run: |
           infracost breakdown --path aws-tf \
@@ -181,12 +105,10 @@ jobs:
                               --format json \
                               --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.json
 
-      # 2. 顯示在 Console (這就是你想要的！Push Main 都有得睇)
       - name: Show Cost Table in Console
         run: |
           infracost output --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json --format table
 
-      # 3. 生成 HTML Report (即使不上 Cloud Dashboard 都有得下載)
       - name: Generate HTML Report
         run: |
           infracost output --path infracost-report-main-${{ steps.main_report_date.outputs.value }}.json --format html --out-file infracost-report-main-${{ steps.main_report_date.outputs.value }}.html
