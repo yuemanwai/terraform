@@ -1,5 +1,22 @@
-# Trivy ignore rules for this repository
-# NOTE: Temporary risk acceptance for FYP budget constraints.
-# Revisit periodically and remove when remediation becomes feasible.
-AWS-0038
-AVD-AWS-0038
+# ==========================================
+# Trivy Exception Management (Demo Environment)
+# ==========================================
+
+# [Accepted Risk] EKS Control Plane Access
+# Reason: Public access and CIDR (0.0.0.0/0) intentionally enabled strictly for local `kubectl` management during the development/demo phase.
+# Mitigation: To be disabled in Production; access will be routed via Bastion Host or AWS Client VPN.
+AWS-0040
+AWS-0041
+
+# [Deferred Implementation] RDS Identity Management
+# Reason: Currently utilizing AWS Secrets Manager with boto3 for credential injection (12-Factor App compliant).
+# Migration to full RDS IAM Authentication via IRSA is deferred to future phases.
+AWS-0176
+
+# [Operational Override] Infrastructure Lifecycle
+# Reason: Deletion protection is intentionally disabled to facilitate seamless `terraform destroy` for the ephemeral demo environment.
+AWS-0177
+
+# [FinOps] Cost Optimization
+# Reason: Performance Insights disabled to minimize unnecessary AWS billing charges for the non-production cluster.
+AWS-0133
