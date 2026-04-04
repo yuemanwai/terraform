@@ -64,3 +64,5 @@ terraform.rc
 console
 
 git-error*
+
+test_secret.txt
