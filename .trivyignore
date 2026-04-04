@@ -2,23 +2,24 @@
 # Trivy Exception Management (Demo Environment)
 # ==========================================
 
-# [Accepted Risk] EKS Control Plane Access
-# Reason: Public access and CIDR (0.0.0.0/0) intentionally enabled strictly for local `kubectl` management during the development/demo phase.
-# Mitigation: To be disabled in Production; access will be routed via Bastion Host or AWS Client VPN.
-# AWS-0040
-# AWS-0041
-
 # [Tool Limitation / False Positive]
-# Reason: The egress rule is correctly overridden in main.tf via variables. 
-# However, Trivy static analysis fails to evaluate the module's internal count logic, resulting in a false positive on the cached module files.
+# Reason: The egress rule is correctly overridden in main.tf via variables.
+# However, Trivy static analysis fails to evaluate the module's internal count logic, resulting in a
+# false positive on the cached module files.
 AWS-0104
-
-# [Deferred Implementation] RDS Identity Management
-AWS-0176
-
-# [Operational Override] Infrastructure Lifecycle
-AWS-0177
 
 # [FinOps] Cost Optimization
 AWS-0133
 AWS-0038
+
+# [Operational Override] Infrastructure Lifecycle
+AWS-0177
+
+# [Accepted Risk] EKS Control Plane Access
+# Reason: Public access and CIDR (0.0.0.0/0) intentionally enabled strictly for local `kubectl` management during the development/demo phase.
+# Mitigation: To be disabled in Production; access will be routed via Bastion Host or AWS Client VPN.
+AWS-0040
+AWS-0041
+
+# [Deferred Implementation] RDS Identity Management
+AWS-0176
