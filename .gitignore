@@ -62,3 +62,5 @@ terraform.rc
 *.csv
 *result.*
 console
+
+git-error*
