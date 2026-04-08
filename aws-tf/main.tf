@@ -58,7 +58,8 @@ module "eks" {
   # https://docs.aws.amazon.com/zh_tw/eks/latest/userguide/kubernetes-versions.html
   cluster_version = "1.35"
 
-  # 🚨 FYP DEMO: For demo purposes, we enable public access to the cluster endpoint and allow all CIDR blocks.
+  # 🚨 FYP DEMO: AWS-0040/0041.
+  # For demo purposes, we enable public access to the cluster endpoint and allow all CIDR blocks.
   # In production, you should restrict this to only the necessary CIDR blocks or use private access.
   cluster_endpoint_public_access           = true
   cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"]
@@ -83,7 +84,7 @@ module "eks" {
     }
   }
 
-  # # 🚨 FYP DEMO: comment out this whole block to quickly eliminate AWS-0104.
+  # # 🚨 FYP DEMO: AWS-0104.
 
   # # 1) Disable the module's default "allow all egress" rule (addresses AWS-0104).
   # node_security_group_enable_recommended_rules = false
