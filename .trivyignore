@@ -1,25 +1,20 @@
-# ==========================================
-# Trivy Exception Management (Demo Environment)
-# ==========================================
+# Trivy Exception Management
 
-# [Tool Limitation / False Positive]
-# Reason: The egress rule is correctly overridden in main.tf via variables.
-# However, Trivy static analysis fails to evaluate the module's internal count logic, resulting in a
-# false positive on the cached module files.
+# False positive: this egress rule is needed for nodes to fetch updates, pull images, and call AWS APIs.
 AWS-0104
 
-# [FinOps] Cost Optimization
+# Cost optimization
 AWS-0133
 AWS-0038
 
-# [Operational Override] Infrastructure Lifecycle
+# Infrastructure lifecycle
 AWS-0177
 
-# [Accepted Risk] EKS Control Plane Access
-# Reason: Public access and CIDR (0.0.0.0/0) intentionally enabled strictly for local `kubectl` management during the development/demo phase.
-# Mitigation: To be disabled in Production; access will be routed via Bastion Host or AWS Client VPN.
+# EKS control plane access
+# Public access remains enabled for local kubectl access via Terraform Cloud and a local PC.
+# If you move kubectl access behind a bastion or VPN, remove this exception.
 AWS-0040
 AWS-0041
 
-# [Deferred Implementation] RDS Identity Management
+# RDS identity management
 AWS-0176

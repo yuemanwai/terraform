@@ -62,7 +62,3 @@ terraform.rc
 *.csv
 *result.*
 console
-
-git-error*
-
-dummy_secret.txt

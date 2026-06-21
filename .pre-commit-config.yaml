@@ -20,9 +20,8 @@ repos:
     hooks:
       - id: terraform_fmt
         files: ^aws-tf/
-
-      # - id: terraform_docs
-      #   files: ^aws-tf/
-      #   args:
-      #     # Disable lockfile updates in documentation generation for stable CI behavior.
-      #     - --args=--lockfile=false
+      - id: terraform_docs
+        files: ^aws-tf/
+        args:
+          # Disable lockfile updates in documentation generation for stable CI behavior.
+          - --args=--lockfile=false

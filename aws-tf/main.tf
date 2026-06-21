@@ -58,9 +58,8 @@ module "eks" {
   # https://docs.aws.amazon.com/zh_tw/eks/latest/userguide/kubernetes-versions.html
   cluster_version = "1.35"
 
-  # 🚨 FYP DEMO: AWS-0040/0041.
-  # For demo purposes, we enable public access to the cluster endpoint and allow all CIDR blocks.
-  # In production, you should restrict this to only the necessary CIDR blocks or use private access.
+  # Public access is required because kubectl is used from Terraform Cloud and a local PC.
+  # Restrict this later if you move kubectl access behind a bastion host or VPN.
   cluster_endpoint_public_access           = true
   cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"]
   enable_cluster_creator_admin_permissions = true
@@ -83,37 +82,6 @@ module "eks" {
       }
     }
   }
-
-  # # 🚨 FYP DEMO: AWS-0104.
-
-  # # 1) Disable the module's default "allow all egress" rule (addresses AWS-0104).
-  # node_security_group_enable_recommended_rules = false
-
-  # # 2) Re-add only least-privilege rules via additional security group rules.
-  # node_security_group_additional_rules = {
-  #   # Allow outbound HTTPS only (for pulling images and calling AWS APIs).
-  #   egress_https = {
-  #     description = "Node egress restricted to HTTPS"
-  #     protocol    = "tcp"
-  #     from_port   = 443
-  #     to_port     = 443
-  #     type        = "egress"
-  #     cidr_blocks = ["0.0.0.0/0"]
-  #   }
-  #   # Allow access only to internal VPC RDS PostgreSQL.
-  #   egress_rds = {
-  #     description = "Allow EKS nodes to access RDS internally"
-  #     protocol    = "tcp"
-  #     from_port   = 5432
-  #     to_port     = 5432
-  #     type        = "egress"
-  #     cidr_blocks = ["10.0.0.0/16"] # Update this to your actual VPC CIDR.
-  #   }
-
-  #   # Note: disabling recommended rules also removes node-to-node internal communication.
-  #   # In real production, add back the required ingress rules. For Trivy IaC scan and demo use,
-  #   # the two egress rules above are enough to remove the critical 0.0.0.0/0 warning.
-  # }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
