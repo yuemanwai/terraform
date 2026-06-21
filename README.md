@@ -46,11 +46,11 @@ Application stacks such as Kubecost and the Prometheus / Grafana / Loki monitori
 
 ## Architecture Diagram
 
-The AWS stack is summarized in the diagram below.
+The architecture diagram below gives a quick view of the AWS stack.
 
-![AWS architecture diagram](AWS%20diagram.png)
+![AWS architecture diagram](docs/images/aws-architecture.png)
 
-It shows the main network and Kubernetes layout:
+It highlights the main network and Kubernetes layout:
 
 - VPC layout
 - public and private subnets
