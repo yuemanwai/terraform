@@ -58,7 +58,7 @@ module "eks" {
   # https://docs.aws.amazon.com/zh_tw/eks/latest/userguide/kubernetes-versions.html
   cluster_version = "1.35"
 
-  # Public access is required because kubectl is used from Terraform Cloud and a local PC.
+  # Public access is required because kubectl is used by a local PC.
   # Restrict this later if you move kubectl access behind a bastion host or VPN.
   cluster_endpoint_public_access           = true
   cluster_endpoint_public_access_cidrs     = ["0.0.0.0/0"]
