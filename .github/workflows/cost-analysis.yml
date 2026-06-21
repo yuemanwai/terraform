@@ -23,6 +23,8 @@ jobs:
 
     steps:
       - name: Install Infracost CLI
+        env:
+          INFRACOST_VERSION: v0.10.44
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh -s -- -b /usr/local/bin
           infracost --version
@@ -90,6 +92,8 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install Infracost CLI
+        env:
+          INFRACOST_VERSION: v0.10.44
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh -s -- -b /usr/local/bin
           infracost --version
