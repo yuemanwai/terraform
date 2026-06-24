@@ -1,70 +1,190 @@
-# Terraform Infrastructure Portfolio
+# AWS EKS Infrastructure Platform
 
-This repository contains Terraform examples for cloud infrastructure and Kubernetes delivery.
+> Infrastructure-as-Code project built with Terraform.
+>
+> This repository provisions the AWS infrastructure layer for a cloud-native platform hosting an AI-powered Japanese learning application. The design emphasizes automation, security, GitOps readiness, high availability, and operational best practices.
 
-The main project is [aws-tf](aws-tf), which provisions an AWS EKS environment. The other folders are kept as reference material for later review:
+---
 
-- [azure-tf](azure-tf)
-- [gcp-tf](gcp-tf)
-- [multicloud](multicloud)
+## Overview
 
-## Project Highlights
+This repository serves as the infrastructure foundation of the project.
 
-- AWS EKS provisioning with Terraform
-- VPC, subnet, and cluster access design
-- `kubectl` access from my local notebook
-- ArgoCD bootstrap for GitOps-driven application delivery
-- Security and cost workflows with GitHub Actions
-- Local pre-commit hooks for formatting, YAML checks, Terraform docs, and secret scanning
+Terraform is used to provision AWS networking, Kubernetes, database, identity, and supporting cloud services. Application deployment and platform services are managed separately through a dedicated ArgoCD GitOps repository.
 
-## Checks
+The infrastructure was designed to resemble production environments while remaining cost-conscious enough to operate within a student budget.
 
-- Local quality gates: `pre-commit` with `terraform_fmt`, `terraform_docs`, `gitleaks`, and basic file hygiene hooks
-- CI security scan: GitHub Actions with Trivy for vuln, secret, and misconfiguration checks on `aws-tf`
+---
 
-## Why This Project
+## Architecture
 
-The AWS module shows the kind of work I want to do professionally:
+![AWS Architecture Diagram](docs/images/aws-architecture.png)
 
-- designing infrastructure that is practical to operate
-- documenting tradeoffs directly in code
-- balancing access, security, and developer usability
-- keeping automation in place for validation and cost review
+### Key Components
 
-## GitOps and Observability
+* Amazon EKS
+* Amazon RDS PostgreSQL
+* AWS Secrets Manager
+* Application Load Balancer
+* Cloudflare DNS
+* ACM Certificates
+* IAM Roles for Service Accounts (IRSA)
+* Terraform Cloud OIDC Federation
+* Multi-AZ Networking
 
-The AWS stack enables ArgoCD in [aws-tf/k8s/k8s.tf](aws-tf/k8s/k8s.tf) and uses it as the delivery layer for Kubernetes workloads.
+### Architecture Highlights
 
-Application stacks such as Kubecost and the Prometheus / Grafana / Loki monitoring setup are managed from a separate ArgoCD repository, which keeps the infrastructure layer and application layer cleanly separated.
+* Public and private subnet segmentation
+* EKS worker nodes deployed exclusively in private subnets
+* RDS deployment isolated in private database subnets
+* Multi-AZ architecture across two Availability Zones
+* TLS termination through AWS Application Load Balancer
+* Cloudflare-managed DNS and edge protection
+* NAT Gateway for controlled outbound internet access
 
-## Repository Layout
+---
 
-- [aws-tf](aws-tf): primary AWS EKS module
-- [azure-tf](azure-tf): Azure reference implementation
-- [gcp-tf](gcp-tf): GCP reference implementation
-- [multicloud](multicloud): multi-cloud Kubernetes tutorial material
+## Design Goals
 
-## Architecture Diagram
+This project was built to explore how modern cloud platforms are provisioned and operated using Infrastructure as Code.
 
-The architecture diagram below gives a quick view of the AWS stack.
+Key objectives included:
 
-![AWS architecture diagram](docs/images/aws-architecture.png)
+* Automated infrastructure provisioning
+* GitOps-ready Kubernetes operations
+* High availability across multiple Availability Zones
+* Secure cloud authentication without long-lived credentials
+* Least-privilege workload access control
+* Separation of infrastructure and application delivery layers
 
-It highlights the main network and Kubernetes layout:
+---
 
-- VPC layout
-- public and private subnets
-- EKS control plane access
-- node group placement
-- supporting services such as RDS, Secrets Manager, and Certificate Manager
+## Infrastructure Components
 
-## Suggested Reading Order
+### Networking
 
-1. [aws-tf/main.tf](aws-tf/main.tf)
-2. [aws-tf/README.md](aws-tf/README.md)
-3. [.github/workflows/security.yml](.github/workflows/security.yml)
-4. [.github/workflows/cost-analysis.yml](.github/workflows/cost-analysis.yml)
+* VPC spanning two Availability Zones
+* Public and private subnet architecture
+* Route table segmentation
+* Internet Gateway
+* NAT Gateway
 
-## Archive
+### Kubernetes Platform
 
-The original long-form README is stored in [docs/archive/README-original.md](docs/archive/README-original.md).
+* Amazon EKS Cluster
+* Managed Node Groups
+* OIDC Provider
+* Kubernetes bootstrap resources
+
+### Database Layer
+
+* Amazon RDS PostgreSQL
+* Private subnet deployment
+* Secrets Manager integration
+
+### Ingress & DNS
+
+* AWS Application Load Balancer
+* AWS Certificate Manager (ACM)
+* Cloudflare DNS integration
+
+---
+
+## Security Highlights
+
+### OIDC Federation
+
+Terraform Cloud authenticates to AWS using OIDC federation and IAM role assumption.
+
+This removes the need to store long-lived AWS access keys inside CI/CD systems.
+
+### IAM Roles for Service Accounts (IRSA)
+
+Kubernetes workloads authenticate directly to AWS services through IAM Roles for Service Accounts.
+
+This eliminates embedded cloud credentials inside containers.
+
+### Secrets Management
+
+AWS Secrets Manager is used to manage database credentials.
+
+Features include:
+
+* Automatic credential rotation
+* Dynamic secret retrieval
+* Reduced credential exposure risk
+
+### Security Validation
+
+Security checks are integrated into development workflows:
+
+* Trivy vulnerability scanning
+* Terraform misconfiguration scanning
+* Gitleaks secret detection
+* Pre-commit validation
+
+---
+
+## GitOps Integration
+
+This repository provisions and bootstraps the infrastructure layer.
+
+Application delivery is handled separately through ArgoCD using a dedicated GitOps repository.
+
+The GitOps layer manages:
+
+* ArgoCD
+* Prometheus
+* Grafana
+* Loki
+* Kubecost
+* Argo Rollouts
+* Application workloads
+
+This separation allows infrastructure provisioning and workload deployment to evolve independently.
+
+---
+
+## Repository Structure
+
+```text
+.
+├── aws-tf/
+├── azure-tf/
+├── gcp-tf/
+├── multicloud/
+└── docs/
+```
+
+### Directory Description
+
+| Directory | Purpose                                                |
+| --------- | ------------------------------------------------------ |
+| aws-tf/   | Core AWS VPC, EKS, RDS, and Kubernetes bootstrap layer |
+| azure-tf/  | Azure reference implementation                         |
+| gcp-tf/    | GCP reference implementation                           |
+| multicloud/ | Multi-cloud learning material                          |
+| docs/     | Architecture documentation                             |
+
+---
+
+## Related Repositories
+
+| Repository       | Purpose                                          |
+| ---------------- | ------------------------------------------------ |
+| argocd-local     | GitOps delivery platform and Kubernetes services |
+| japanese-academy | Flask web application                            |
+
+---
+
+## Technologies
+
+Terraform • AWS • Amazon EKS • Amazon RDS • IAM • OIDC • IRSA • Secrets Manager • ACM • Cloudflare • GitHub Actions • Trivy • Gitleaks
+
+---
+
+## Notes
+
+This repository focuses exclusively on infrastructure provisioning.
+
+Application deployment, observability tooling, cost monitoring, and progressive delivery configurations are intentionally managed through a separate GitOps repository to maintain clear separation of concerns.
