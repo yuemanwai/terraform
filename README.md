@@ -170,10 +170,10 @@ This separation allows infrastructure provisioning and workload deployment to ev
 
 ## Related Repositories
 
-| Repository       | Purpose                                          |
-| ---------------- | ------------------------------------------------ |
-| argocd-local     | GitOps delivery platform and Kubernetes services |
-| japanese-academy | Flask web application                            |
+| Repository | Purpose | Link |
+| ---------- | ------- | ---- |
+| argocd-local | GitOps delivery platform and Kubernetes services | [github.com/yuemanwai/argocd-local](https://github.com/yuemanwai/argocd-local) |
+| japanese-academy | Flask web application | [github.com/yuemanwai/japanese-academy](https://github.com/yuemanwai/japanese-academy) |
 
 ---
 
